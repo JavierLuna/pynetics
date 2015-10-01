@@ -1,4 +1,4 @@
-from pynetics.algorithm import GeneticAlgorithm
+from pynetics.algorithm import GeneticAlgorithmOld
 from pynetics.allele import BinaryAlleles
 from pynetics.catastrophe import DoomsdayCatastrophe
 from pynetics.crossover import GeneralizedCrossover
@@ -30,7 +30,7 @@ class MaximizeOnesIndividual(ListIndividual):
 if __name__ == '__main__':
     individual = MaximizeOnesIndividual(size=20, alleles=BinaryAlleles())
 
-    ga = GeneticAlgorithm(
+    ga = GeneticAlgorithmOld(
         individual=individual,
         population_size=20,
         f_selection=TournamentSelector(10),

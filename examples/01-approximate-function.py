@@ -1,5 +1,5 @@
 import math
-from pynetics.algorithm import GeneticAlgorithm
+from pynetics.algorithm import GeneticAlgorithmOld
 from pynetics.allele import RangeAlleles
 from pynetics.catastrophe import DoomsdayCatastrophe
 from pynetics.crossover import MorphologicalCrossover
@@ -55,7 +55,7 @@ def f2(x):
 if __name__ == '__main__':
     individual = ApproximateFunction(f=f1, size=3, alleles=RangeAlleles(0.0, 1.0))
 
-    ga = GeneticAlgorithm(
+    ga = GeneticAlgorithmOld(
         individual=individual,
         population_size=50,
         f_selection=TournamentSelector(5),

@@ -1,6 +1,6 @@
 import abc
 import random
-from pynetics.utils import test_chances
+from pynetics.utils import take_chances
 
 
 class Crossover(metaclass=abc.ABCMeta):
@@ -85,7 +85,7 @@ class RandomMaskCrossover(Crossover):
     def __call__(self, i1, i2):
         child1, child2 = i1.clone(), i2.clone()
         for i in range(len(i1)):
-            if test_chances(.5):
+            if take_chances(.5):
                 child1.chromosome[i] = i1.chromosome[i]
                 child2.chromosome[i] = i2.chromosome[i]
             else:
