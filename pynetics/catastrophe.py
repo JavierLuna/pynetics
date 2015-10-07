@@ -1,41 +1,87 @@
 import abc
 
+from pynetics import take_chances
 
-class Catastrophe(metaclass=abc.ABCMeta):
-    # TODO TBD
+
+# TODO I'm not proud of this methods. I think they performance may be improved.
+
+class CatastropheMethod(metaclass=abc.ABCMeta):
+    """ Defines the behaviour of a genetic algorithm catastrophe operator.
+
+    It's expected that this operator keep track of when to act, since it will be
+    called every step of the algorithm after replacement operation.
+    """
+
     def __call__(self, population):
-        # TODO TBD
-        # First we decide which individuals among the population are maintained.
-        new_individuals = self.population_to_maintain(population)
-        # Second, we generate new individuals until length of population is reached.
-        while len(new_individuals) < len(population):
-            new_individuals.append(new_individuals[0].create())
-        # Finally, generated individuals are the new population
+        """ Tries to apply the catastrophic operator to the population.
+
+        This method does some checks and the delegates the application of the
+        catastrophic operator to the "perform" method.
+
+        :param population: The population where apply the catastrophic method.
+        """
+        if population is None:
+            raise ValueError('The population cannot be None')
+        else:
+            return self.perform(population)
+
+    @abc.abstractmethod
+    def perform(self, population):
+        """ Implementation of the catastrophe operation.
+
+        :param population: the population which may suffer the catastrophe
+        """
+
+
+class ProbabilityBasedCatastrophe(CatastropheMethod, metaclass=abc.ABCMeta):
+    """ Base class for some bundled probability based catastrophe methods.
+
+    This method will have a probability to be triggered. Is expected this
+    probability to be very little.
+    """
+
+    def __init__(self, probability):
+        """ Initializes this catastrophe method.
+
+        :param probability: The probability fot the catastrophe to happen.
+        """
+        self.__probability = probability
+
+    def perform(self, population):
+        if take_chances(self.__probability):
+            self.perform_catastrophe()
+
+    @abc.abstractmethod
+    def perform_catastrophe(self, population):
+        """ Returns a list of the individuals to remove from population.
+
+        :param population: The population from where extract individuals.
+        :return: The individuals to retain after the catastrophe application.
+        """
+
+
+class PackingByProbability(ProbabilityBasedCatastrophe):
+    """ Replaces all repeated individuals maintaining only one copy of each. """
+
+    def perform_catastrophe(self, population):
+        """ Replaces all repeated individuals by new ones.
+
+        :param population: The population where apply the catastrophe.
+        """
+        visited_individuals = []
         for i in range(len(population)):
-            population[i] = new_individuals[i]
-
-    def population_to_maintain(self, population):
-        # TODO TBD
-        return []
+            if population[i] in visited_individuals:
+                population[i] = population.spawn()
+            visited_individuals.append(population[i])
 
 
-class PackingCatastrophe(Catastrophe):
-    # TODO TBD
+class DoomsdayByProbability(ProbabilityBasedCatastrophe):
+    """ Replaces all but the best individual. """
 
-    def population_to_maintain(self, population):
-        # TODO TBD
-        # We get each different individual once.
-        population_to_maintain = []
-        for individual in population:
-            if individual not in population_to_maintain:
-                population_to_maintain.append(individual)
-        return population_to_maintain
+    def perform_catastrophe(self, population):
+        """ Replaces all the individuals but the best.
 
-
-class DoomsdayCatastrophe(Catastrophe):
-    # TODO TBD
-
-    def population_to_maintain(self, population):
-        # TODO TBD
-        # We get the best individual among all the population.
-        return [population[0]]
+        :param population: The population where apply the catastrophe.
+        """
+        for i in range(1, len(population)):
+            population[i] = population.spawning_pool.create()
