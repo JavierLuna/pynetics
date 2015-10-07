@@ -39,6 +39,7 @@ class MorphologicalCrossover(ListCrossover):
     alleles.
     NOTE: The value of each gene must be normalized to the interval [0, 1].
     """
+    parents_num = 2
 
     def __init__(self, a=-.001, b=-.133, c=.54, d=.226):
         # TODO TBD Search the reference to the papers .
@@ -61,14 +62,14 @@ class MorphologicalCrossover(ListCrossover):
         self.__calc_2 = d / (1 - c)
         self.__calc_3 = self.__calc_2 * -c
 
-    def perform(self, i1, i2):
+    def perform(self, individuals):
         """ Realizes the crossover operation.
 
-        :param i1: The first parent.
-        :param i2: The second parent.
+        :param individuals: The individuals to cross to generate progeny.
         :return: A list of two individuals, each one a child containing some
             characteristics derived from the parents.
         """
+        i1, i2 = individuals[0], individuals[1]
         child1, child2 = i1.population.spawn(), i2.population.spawn()
         for g in range(len(i1)):
             genes_in_position_g = [i[g] for i in i1.population.individuals]
@@ -80,7 +81,7 @@ class MorphologicalCrossover(ListCrossover):
 
             child1[g] = random.uniform(lower_bound, upper_bound)
             child2[g] = upper_bound - (child1[g] - lower_bound)
-        return child1, child2
+        return [child1, child2, ]
 
     def __phi(self, x):
         """ Value in the interval from where to obtain the values grow or shrink

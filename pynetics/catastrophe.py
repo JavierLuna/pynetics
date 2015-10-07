@@ -33,6 +33,17 @@ class CatastropheMethod(metaclass=abc.ABCMeta):
         """
 
 
+class NoCatastrophe(CatastropheMethod):
+    """ A catastrophe method where nothing happens. """
+
+    def perform(self, population):
+        """ It's a wonderful world and nothing happens.
+
+        :param population: The poppulation where nothing happens. Ever.
+        """
+        pass
+
+
 class ProbabilityBasedCatastrophe(CatastropheMethod, metaclass=abc.ABCMeta):
     """ Base class for some bundled probability based catastrophe methods.
 

@@ -1,4 +1,5 @@
 import random
+
 from pynetics import UnexpectedClassError
 
 
@@ -27,6 +28,6 @@ def check_is_instance_of(value, cls):
         given class.
     """
     if not isinstance(value, cls):
-        raise UnexpectedClassError('stop_condition', cls)
+        raise UnexpectedClassError(cls)
     else:
         return value

@@ -10,10 +10,11 @@ class StopCondition(metaclass=abc.ABCMeta):
     """
 
     @abc.abstractmethod
-    def __call__(self, populations):
+    def __call__(self, genetic_algorithm):
         """ Checks if this stop condition is met.
 
-        :param populations: The list of populations being evolved in the ga.
+        :param genetic_algorithm: The genetic algorithm where this stop
+            condition belongs.
         :return: True if criteria is met, false otherwise.
         """
 
@@ -28,16 +29,15 @@ class StepsNumStopCondition(StopCondition):
         """
         self.__steps = steps
 
-    def __call__(self, populations):
+    def __call__(self, genetic_algorithm):
         """ Checks if this stop criteria is met.
 
-        It will look at the generation of the populations. It's expected that
-        all the populations in the same problem have the same generation at the
-        same time so the algorithm will check against the first. If its
-        generation is greater or equal to the specified in initialization
-        method, the criteria is met.
+        It will look at the generation of the genetic algorithm. It's expected
+        that. If its generation is greater or equal to the specified in
+        initialization method, the criteria is met.
 
-        :param populations: The genetic algorithm to check.
+        :param genetic_algorithm: The genetic algorithm where this stop
+            condition belongs.
         :return: True if criteria is met, false otherwise.
         """
-        return populations[0].generation >= self.__steps
+        return genetic_algorithm.generation >= self.__steps

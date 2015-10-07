@@ -1,5 +1,4 @@
 import abc
-import inspect
 import random
 
 from pynetics.exceptions import InvalidPopulationSizeError, \
@@ -123,11 +122,13 @@ class GeneticAlgorithm:
         offspring = []
         while len(offspring) < population.replacement_rate:
             # Selection
-            individuals_to_select = inspect.signature(self.__cross).parameters
-            individuals = self.__select(population, len(individuals_to_select))
+            individuals = self.__select(
+                population,
+                self.__cross.get_parents_num()
+            )
             # Crossover
             if take_chances(self.__p_crossover):
-                progeny = self.__cross(population, *individuals)
+                progeny = self.__cross(individuals)
             else:
                 progeny = individuals
             number_of_individuals_who_fit = min(
@@ -192,7 +193,7 @@ class Population(list):
             raise InvalidPopulationSizeError()
         else:
             self.__size = size
-        if not 0 < replacement_rate < size:
+        if not 0 < replacement_rate <= size:
             raise InvalidReplacementRateError()
         else:
             self.__replacement_rate = replacement_rate
@@ -228,7 +229,7 @@ class Population(list):
     def sort(self, *args, **kwargs):
         """ Sorts the list of individuals by its fitness. """
         if not self.__sorted:
-            super().sort(self.__fitness_method, reverse=True)
+            super().sort(key=self.__fitness_method, reverse=True)
             self.__sorted = True
 
     def __getitem__(self, index):
@@ -283,6 +284,11 @@ class Population(list):
         return self.__genetic_algorithm
 
     @property
+    def replacement_rate(self):
+        """ Returns the replacement rate of this population. """
+        return self.__replacement_rate
+
+    @property
     def spawning_pool(self):
         """ Returns the genetic algorithm to which this population belongs. """
         return self.__spawning_pool
@@ -318,29 +324,6 @@ class SpawningPool(metaclass=abc.ABCMeta):
         """ Creates a new individual randomly.
 
         :return: A new Individual object.
-        """
-
-
-class CrossoverMethod(metaclass=abc.ABCMeta):
-    """ Defines the behaviour of a genetic algorithm crossover operator. """
-
-    def __call__(self, *individuals):
-        """ Applies the crossover method to the list of individuals.
-
-        :param individuals: The individuals to cross to generate progeny.
-        :returns: A list of individuals with characteristics of the parents.
-        """
-        return self.perform(*individuals)
-
-    @abc.abstractmethod
-    def perform(self, *individuals):
-        """ Algorithm for this crossover method.
-
-        The crossover implementation must be aware of the individual type. Given
-        that not all the implementations are the same, not all the crossover
-        operations may work.
-
-        :return: A list of individuals.
         """
 
 

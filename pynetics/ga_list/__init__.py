@@ -1,8 +1,8 @@
 import abc
 import random
 
-from pynetics import MutateMethod, SpawningPool, Individual, CrossoverMethod
-
+from pynetics import SpawningPool, Individual, MutateMethod
+from pynetics.crossover import CrossoverMethod
 from pynetics.utils import take_chances
 
 
@@ -53,7 +53,7 @@ class ListIndividualSpawningPool(SpawningPool, metaclass=abc.ABCMeta):
         return individual
 
 
-class ListIndividual(Individual, list):
+class ListIndividual(list, Individual):
     """ An individual whose representation is a list of finite values. """
 
     def __eq__(self, individual):
@@ -70,22 +70,21 @@ class ListIndividual(Individual, list):
 class ListCrossover(CrossoverMethod, metaclass=abc.ABCMeta):
     """ Common behavior for crossover methods for ListIndividual instances. """
 
-    def __call__(self, population, *individuals):
+    def __call__(self, individuals):
         """ Performs some checks before applying the crossover method.
 
         Specifically, it checks if the length of all individuals are the same.
         In so, the crossover operation is done. If not, a ValueError is raised.
 
-        :param population: The population to which individuals belong.
-        :param individuals: The individuals on which to perform the crossover.
-        :returns: A list of individuals with characteristics of the parents.
+        :param individuals: The individuals to cross to generate progeny.
+        :return: A list of individuals with characteristics of the parents.
         :raises ValueError: If not all the individuals has the same length.
         """
         lengths = [len(i) for i in individuals]
         if not lengths.count(lengths[0]) == len(lengths):
             raise ValueError('Both individuals must have the same length')
         else:
-            return super().__call__(population, *individuals)
+            return super().__call__(individuals)
 
 
 class OnePointCrossover(ListCrossover):
@@ -94,8 +93,9 @@ class OnePointCrossover(ListCrossover):
     This crossover implementation works with two (and only two) individuals of
     type ListIndividual (or subclasses).
     """
+    parents_num = 2
 
-    def perform(self, i1, i2):
+    def perform(self, individuals):
         """ Offspring is obtained mixing the parents with one pivot point.
 
         One example:
@@ -105,17 +105,17 @@ class OnePointCrossover(ListCrossover):
         -----------
         children : aaabbbbb, bbbaaaaa
 
-        :param i1: The first parent.
-        :param i2: The second parent.
+        :param individuals: The individuals to cross to generate progeny.
         :return: A list of two individuals, each a child containing some
             characteristics from their parents.
         """
+        i1, i2 = individuals[0], individuals[1]
         child1, child2 = i1.population.spawn(), i1.population.spawn()
 
         p = random.randint(1, len(i1) - 1)
         for i in range(len(i1)):
             child1[i], child2[i] = (i1[i], i2[i]) if i < p else (i2[i], i1[i])
-        return child1, child2
+        return [child1, child2, ]
 
 
 class TwoPointCrossover(ListCrossover):
@@ -124,8 +124,9 @@ class TwoPointCrossover(ListCrossover):
     This crossover implementation works with two (and only two) individuals of
     type ListIndividual (or subclasses).
     """
+    parents_num = 2
 
-    def perform(self, i1, i2):
+    def perform(self, individuals):
         """ Offspring is obtained mixing the parents with two pivot point.
 
         One example:
@@ -135,11 +136,11 @@ class TwoPointCrossover(ListCrossover):
         -----------
         children : aaabbaaa, bbbaabbb
 
-        :param i1: The first parent.
-        :param i2: The second parent.
+        :param individuals: The individuals to cross to generate progeny.
         :return: A list of two individuals, each a child containing some
             characteristics from their parents.
         """
+        i1, i2 = individuals[0], individuals[1]
         child1, child2 = i1.population.spawn(), i1.population.spawn()
 
         pivots = random.sample(range(len(i1) - 1), 2)
@@ -147,7 +148,7 @@ class TwoPointCrossover(ListCrossover):
         for i in range(len(i1)):
             child1[i], child2[i] = (i1[i], i2[i]) if p < i < q else (
                 i2[i], i1[i])
-        return child1, child2
+        return [child1, child2, ]
 
 
 class RandomMaskCrossover(ListCrossover):
@@ -157,7 +158,9 @@ class RandomMaskCrossover(ListCrossover):
     type ListIndividual (or subclasses).
     """
 
-    def perform(self, i1, i2):
+    parents_num = 2
+
+    def perform(self, individuals):
         """ Offspring is obtained generating a random mask.
 
         This mask determines which genes of each of the progenitors are used on
@@ -168,11 +171,11 @@ class RandomMaskCrossover(ListCrossover):
         -----------
         children    : aabaabba, bbabbaab
 
-        :param i1: The first parent.
-        :param i2: The second parent.
+        :param individuals: The individuals to cross to generate progeny.
         :return: A list of two individuals, each a child containing some
             characteristics from their parents.
         """
+        i1, i2 = individuals[0], individuals[1]
         child1, child2 = i1.population.spawn(), i1.population.spawn()
 
         for i in range(len(i1)):
@@ -180,7 +183,7 @@ class RandomMaskCrossover(ListCrossover):
                 child1[i], child2[i] = i1[i], i2[i]
             else:
                 child1[i], child2[i] = i2[i], i1[i]
-        return child1, child2
+        return [child1, child2, ]
 
 
 class SwapGenes(MutateMethod):

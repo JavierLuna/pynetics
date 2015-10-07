@@ -1,4 +1,4 @@
-from pynetics.algorithm import GeneticAlgorithmOld
+from pynetics.base import GeneticAlgorithmOld
 from pynetics.allele import BinaryAlleles
 from pynetics.catastrophe import DoomsdayCatastrophe
 from pynetics.crossover import GeneralizedCrossover
@@ -44,5 +44,5 @@ if __name__ == '__main__':
         f_catastrophe=DoomsdayCatastrophe(),
         p_catastrophe=0.05,
     )
-    ga.evolve()
+    ga.step()
     print(ga.population[0])
