@@ -6,7 +6,7 @@ from pynetics.exceptions import InvalidPopulationSizeError, \
 from pynetics.stop import StopCondition
 from pynetics.utils import check_is_instance_of, take_chances
 
-__version__ = '0.1.0'
+__version__ = '0.1.1'
 
 
 class GeneticAlgorithm:
