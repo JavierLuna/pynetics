@@ -1,5 +1,29 @@
-from pynetics import ReplaceMethod
+import abc
 
+
+class ReplaceMethod(metaclass=abc.ABCMeta):
+    """ Replacement of individuals of the population. """
+
+    def __call__(self, population, offspring):
+        """ Performs some checks before applying the replacement method.
+
+        :param population: The population where make the replacement.
+        :param offspring: The new population to use as replacement.
+        :raises ValueError: If the number of individuals in population is lower
+            than the number of individuals in the offspring.
+        """
+        if len(offspring) > len(population):
+            raise ValueError('The offspring is higher than population')
+        else:
+            return self.perform(population, offspring)
+
+    @abc.abstractmethod
+    def perform(self, population, offspring):
+        """ It makes the replacement according to the subclass implementation.
+
+        :param population: The population where make the replacement.
+        :param offspring: The new population to use as replacement.
+        """
 
 class LowElitism(ReplaceMethod):
     """ Low elitism replacement.

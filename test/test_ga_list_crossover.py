@@ -16,7 +16,11 @@ class ListCrossoverTestCase(TestCase):
         self.i3.extend('TTTTTT')
 
         population = mock.Mock()
-        population.spawn = lambda: ListIndividual('AAAAAAA')
+        def f():
+            l = ListIndividual()
+            l.extend('AAAAAAA')
+            return l
+        population.spawn = f
         self.i1.population = population
         self.i2.population = population
         self.i3.population = population

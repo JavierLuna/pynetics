@@ -1,17 +1,21 @@
 import random
 
-from pynetics.ga_list import FiniteSetAlleles, ListCrossover
+from pynetics import ga_list
 
 
-class BinaryAlleles(FiniteSetAlleles):
-    """ Finite set of alleles which its possible values are only 0 and 1. """
+class BinaryIndividualSpawningPool(ga_list.ListIndividualSpawningPool):
+    """ Defines the methods for creating binary individuals. """
 
-    def __init__(self):
-        """ Initializes this alleles with the two possible values. """
-        super().__init__((0, 1))
+    def __init__(self, size):
+        """ Initializes this spawning pool for generating list individuals.
+
+        :param size: The size of the individuals to be created from this
+            spawning pool.
+        """
+        super().__init__(size, binary_alleles)
 
 
-class GeneralizedCrossover(ListCrossover):
+class GeneralizedCrossover(ga_list.ListCrossover):
     """ Offspring is obtained by crossing individuals as they where integers.
 
     NOTE: Works only for individuals with list chromosomes of binary alleles.
@@ -44,3 +48,7 @@ class GeneralizedCrossover(ListCrossover):
         for i in range(len(bin_c)):
             child1[i], child2[i] = bin_c[i], bin_d[i]
         return [child1, child2, ]
+
+
+# A Finite set of alleles where the only valid values are 0 and 1.
+binary_alleles = ga_list.FiniteSetAlleles((0, 1))

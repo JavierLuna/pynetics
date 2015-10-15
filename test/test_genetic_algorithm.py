@@ -6,8 +6,8 @@ from pynetics.crossover import NoCrossover
 from pynetics.ga_list import ListIndividual
 from pynetics.mutation import NoMutation
 from pynetics.replacement import LowElitism
-from pynetics.selection_methods import BestIndividualSelection
-from pynetics.stop_conditions import StepsNumStopCondition
+from pynetics.selection import BestIndividualSelection
+from pynetics.stop import StepsNumStopCondition
 
 
 class DummySpawningPool(SpawningPool):
@@ -15,7 +15,9 @@ class DummySpawningPool(SpawningPool):
 
     def create(self):
         """ Return one of the individuals in the list, consecutively. """
-        return ListIndividual('1234567890')
+        l = ListIndividual()
+        l.extend('1234567890')
+        return l
 
 
 class DummyFitness(FitnessMethod):

@@ -1,5 +1,5 @@
 from unittest import mock, TestCase
-from pynetics.stop_conditions import StepsNumStopCondition
+from pynetics.stop import StepsNumStopCondition
 
 
 class TestStepsNumStopCondition(TestCase):

@@ -3,7 +3,7 @@ import random
 
 from pynetics.exceptions import InvalidPopulationSizeError, \
     UnexpectedClassError, InvalidReplacementRateError
-from pynetics.stop_conditions import StopCondition
+from pynetics.stop import StopCondition
 from pynetics.utils import check_is_instance_of, take_chances
 
 __version__ = '0.1.0'
@@ -271,7 +271,23 @@ class Population(list):
             population.
         """
         self.__sorted = False
+        for individual in individuals:
+            individual.population = self
         super().extend(individuals)
+
+    def append(self, individual):
+        """ Ads a new element to the end of the list of the population.
+
+        This call will cause a new sorting of the individuals the next time an
+        access is required. This means that is preferable to make all the
+        inserts in the population at once instead doing interleaved readings and
+        inserts.
+
+        :param individual: The individual to be inserted in the population
+        """
+        self.__sorted = False
+        individual.population = self
+        super().append(individual)
 
     @property
     def sorted(self):
@@ -324,83 +340,6 @@ class SpawningPool(metaclass=abc.ABCMeta):
         """ Creates a new individual randomly.
 
         :return: A new Individual object.
-        """
-
-
-class MutateMethod(metaclass=abc.ABCMeta):
-    """ Defines the behaviour of a genetic algorithm mutation operator. """
-
-    def __call__(self, individual):
-        """ Applies the crossover method to the list of individuals.
-
-        :param individual: an individual to mutate.
-        :returns: A new mutated individual.
-        """
-        return self.perform(individual)
-
-    @abc.abstractmethod
-    def perform(self, individual):
-        """ Implementation of the mutation operation.
-
-        The mutation implementation must be aware of the implementation type.
-        Given that not all the implementations are the same, not all the
-        mutation operations may work.
-
-        :param individual: an individual to mutate.
-        :returns: A new mutated individual.
-        """
-
-
-class ReplaceMethod(metaclass=abc.ABCMeta):
-    """ Replacement of individuals of the population. """
-
-    def __call__(self, population, offspring):
-        """ Performs some checks before applying the replacement method.
-
-        :param population: The population where make the replacement.
-        :param offspring: The new population to use as replacement.
-        :raises ValueError: If the number of individuals in population is lower
-            than the number of individuals in the offspring.
-        """
-        if len(offspring) > len(population):
-            raise ValueError('The offspring is higher than population')
-        else:
-            return self.perform(population, offspring)
-
-    @abc.abstractmethod
-    def perform(self, population, offspring):
-        """ It makes the replacement according to the subclass implementation.
-
-        :param population: The population where make the replacement.
-        :param offspring: The new population to use as replacement.
-        """
-
-
-class CatastropheMethod(metaclass=abc.ABCMeta):
-    """ Defines the behaviour of a genetic algorithm catastrophe operator.
-
-    It's expected that this operator keep track of when to act, since it will be
-    called every step of the algorithm after replacement operation.
-    """
-
-    def __call__(self, population):
-        """ Tries to apply the catastrophic operator to the population.
-
-        This method does some checks and the delegates the application of the
-        catastrophic operator to the "perform" method.
-
-        :param population: The population where apply the catastrophic method.
-        """
-        if population is None:
-            raise ValueError('The population cannot be None')
-        else:
-            return self.perform(population)
-
-    @abc.abstractmethod
-    def perform(self, population):
-        """ Implementation of the catastrophe operation.
-
-        :param population: the population which may suffer the catastrophe
         """
 
 

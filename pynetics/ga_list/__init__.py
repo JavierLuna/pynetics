@@ -1,9 +1,10 @@
 import abc
 import random
 
-from pynetics import SpawningPool, Individual, MutateMethod
+from pynetics import SpawningPool, Individual
 from pynetics.crossover import CrossoverMethod
-from pynetics.utils import take_chances
+from pynetics.mutation import MutateMethod
+from pynetics.utils import take_chances, check_is_instance_of
 
 
 class Alleles(metaclass=abc.ABCMeta):
@@ -53,7 +54,7 @@ class ListIndividualSpawningPool(SpawningPool, metaclass=abc.ABCMeta):
         return individual
 
 
-class ListIndividual(list, Individual):
+class ListIndividual(Individual, list):
     """ An individual whose representation is a list of finite values. """
 
     def __eq__(self, individual):
@@ -206,16 +207,25 @@ class SwapGenes(MutateMethod):
 
         :param individual: The individual to be mutated.
         """
-        new_individual = individual.population.spawn()
-        genes = random.sample(range(len(new_individual) - 1), 2)
+        genes = random.sample(range(len(individual) - 1), 2)
         g1, g2 = genes[0], genes[1]
-        new_individual.chromosome[g1], new_individual.genes[g2] = \
-            new_individual.genes[g2], new_individual.genes[g1]
-        return new_individual
+        individual[g1], individual[g2] = individual[g2], genes[g1]
 
 
 class RandomGeneValue(MutateMethod):
     """ Mutates the individual by changing the value to a random gene. """
+
+    def __init__(self, alleles):
+        """ Initializes the mutation method.
+
+        :param alleles: The alleles that the genes of the individual can take.
+        """
+        self.__alleles = check_is_instance_of(alleles, Alleles)
+
+    @property
+    def alleles(self):
+        """ Returns the alleles that uses this mutation method. """
+        return self.__alleles
 
     def perform(self, individual):
         """ Changes the value of a random gene of the individual.
@@ -231,7 +241,6 @@ class RandomGeneValue(MutateMethod):
 
         :param individual: The individual to be mutated.
         """
-        new_individual = individual.population.spawn()
         i = random.choice(range(len(individual)))
-        new_individual.chromosome[i] = new_individual.alleles.get()
-        return new_individual
+        individual[i] = self.alleles.get()
+        return individual
