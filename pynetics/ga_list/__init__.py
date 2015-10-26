@@ -69,7 +69,7 @@ class ListIndividual(Individual, list):
 
 
 class ListCrossover(CrossoverMethod, metaclass=abc.ABCMeta):
-    """ Common behavior for crossover methods for ListIndividual instances. """
+    """ Common behavior for crossover methods over ListIndividual instances. """
 
     def __call__(self, individuals):
         """ Performs some checks before applying the crossover method.
@@ -187,7 +187,26 @@ class RandomMaskCrossover(ListCrossover):
         return [child1, child2, ]
 
 
-class SwapGenes(MutateMethod):
+class ListMutateMethod(MutateMethod, metaclass=abc.ABCMeta):
+    """ Common behavior for mutation methods over ListIndividual instances. """
+
+    def __call__(self, individual):
+        """ Performs some checks before applying the mutate method.
+
+        Specifically, it checks if the individual is a ListIndividual or any of
+        its subclasses. If not, a ValueError is raised.
+
+        :param individual: The individual to be mutated.
+        :raises UnexpectedClassError: If the individual is not a subclass of the
+            class ListIndividual.
+        """
+        return super().__call__(check_is_instance_of(
+            individual,
+            ListIndividual
+        ))
+
+
+class SwapGenes(ListMutateMethod):
     """ Mutates the by swapping two random genes.
 
     This mutation method operates only with ListIndividuals (or any of their
@@ -209,10 +228,10 @@ class SwapGenes(MutateMethod):
         """
         genes = random.sample(range(len(individual) - 1), 2)
         g1, g2 = genes[0], genes[1]
-        individual[g1], individual[g2] = individual[g2], genes[g1]
+        individual[g1], individual[g2] = individual[g2], individual[g1]
 
 
-class RandomGeneValue(MutateMethod):
+class RandomGeneValue(ListMutateMethod):
     """ Mutates the individual by changing the value to a random gene. """
 
     def __init__(self, alleles):
@@ -242,5 +261,8 @@ class RandomGeneValue(MutateMethod):
         :param individual: The individual to be mutated.
         """
         i = random.choice(range(len(individual)))
-        individual[i] = self.alleles.get()
+        new_gene = self.alleles.get()
+        while individual[i] == new_gene:
+            new_gene = self.alleles.get()
+        individual[i] = new_gene
         return individual
