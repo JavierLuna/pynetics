@@ -1,5 +1,3 @@
-from pprint import pprint
-
 from pynetics import FitnessMethod, GeneticAlgorithm
 from pynetics.catastrophe import NoCatastrophe
 from pynetics.ga_list import TwoPointCrossover, RandomGeneValue
@@ -41,4 +39,5 @@ if __name__ == '__main__':
     )
 
     ga.run()
-    pprint(ga.populations)
+    for individual in ga.populations[0]:
+        print(individual)

@@ -71,6 +71,7 @@ class TestPopulation(TestCase):
             DummySpawningPool(individuals),
             DummyFitness(),
         )
+        population.initialize()
         for i in individuals:
             self.assertIn(i, population)
 
@@ -99,6 +100,7 @@ class TestPopulation(TestCase):
             DummySpawningPool(individuals[:size]),
             DummyFitness(),
         )
+        population.initialize()
         self.assertEquals(size, len(population))
         for i in individuals[:size]:
             self.assertIn(i, population)

@@ -1,4 +1,5 @@
 import abc
+import operator
 import random
 
 from pynetics.exceptions import InvalidPopulationSizeError, \
@@ -82,9 +83,25 @@ class GeneticAlgorithm:
         self.__generation = 0
         self.__populations = []
 
-    def initialize(self):
+    def run(self):
+        """ Runs the simulation.
+
+        The process is as follows: initialize populations and, while the stop
+        condition is not met, do a new evolve step. This process relies in the
+        abstract method "step".
+        """
+        self.__initialize()
+        while not self.__stop_condition(self):
+            for population in self.populations:
+                offspring = self.__generate_offspring(population)
+                self.__replace(population, offspring)
+                self.__catastrophe(population)
+            self.__generation += 1
+
+    def __initialize(self):
         """ Called when starting the genetic algorithm to initialize it. """
         self.__generation = 0
+        # Create the populations and, after that, initialize its individuals
         self.__populations = [
             Population(
                 self,
@@ -97,24 +114,10 @@ class GeneticAlgorithm:
             population_size, replacement_rate, spawning_pool, fitness_method
             in self.__populations_desc
             ]
-
-    def run(self):
-        """ Runs the simulation.
-
-        The process is as follows: initialize populations and, while the stop
-        condition is not met, do a new evolve step. This process relies in the
-        abstract method "step".
-        """
-        self.initialize()
-        while not self.__stop_condition(self):
-            for population in self.populations:
-                offspring = self.__generate_offspring(population)
-                self.__replace(population, offspring)
-                self.__catastrophe(population)
-            self.__generation += 1
+        [population.initialize() for population in self.__populations]
 
     def __generate_offspring(self, population):
-        """ Generates an offspring of a population.
+        """ Generates a new offspring from the population.
 
         :param population: The population from where obtain the offspring.
         :return: A list of individuals.
@@ -166,7 +169,11 @@ class Population(list):
             spawning_pool,
             fitness_method,
     ):
-        """ Initializes the population, filling it with individuals
+        """ Initializes the population, filling it with individuals.
+
+        When the population is initialized, the fitnesses of the individuals
+        generated is also calculated, implying that init_perform of every
+        individual is called.
 
         Because operators requires to know which individual is the fittest,
         others which is the less fit and others need to travel along the
@@ -214,7 +221,26 @@ class Population(list):
         self.__sorted = False
         self.__other_populations = None
 
-        [self.append(self.spawn()) for _ in range(self.__size)]
+        self.__first_individuals = [self.spawn() for _ in range(self.__size)]
+
+    def initialize(self):
+        """ Initializes the fitness of all individuals of this population.
+
+        This fitness is computed using the fitness method but in initialization
+        time.
+        """
+        # We sort the individuals by its initialization time fitness.
+        sorted_individuals = sorted(
+            [
+                (i, self.__fitness_method(i, init=True))
+                for i in self.__first_individuals
+            ],
+            key=operator.itemgetter(1),
+            reverse=True,
+        )
+        # We add them to the population and mark it as sorted.
+        [self.append(individual) for individual, _ in sorted_individuals]
+        self.__sorted = True
 
     def spawn(self):
         """ Spawns a new individual.
@@ -346,19 +372,51 @@ class SpawningPool(metaclass=abc.ABCMeta):
 class FitnessMethod(metaclass=abc.ABCMeta):
     """ Method to estimate how adapted is the individual to the environment. """
 
-    def __call__(self, individual):
+    def __call__(self, individual, init=False):
         """ Calculates the fitness of the individual.
 
         This method does some checks and the delegates the computation of the
         fitness to the "perform" method.
 
-        :param individual:
-        :return:
+        :param individual: The individual to which estimate the adaptation.
+        :param init: If this call to fitness is at initialization time. It
+            defaults to False.
+        :return: A sortable object representing the adaptation of the individual
+            to the environment.
         """
         if individual is None:
             raise ValueError('The individual cannot be None')
+        elif init:
+            return self.init_perform(individual)
         else:
             return self.perform(individual)
+
+    def init_perform(self, individual):
+        """ Estimates how adapted is the individual at initialization time.
+
+        This is useful in schemas where the fitness while initializing is
+        computed in a different way than along the generations.
+
+        Overriding this method can be tricky, specially in a co-evolutionary
+        scheme. In this stage of the algorithm (initialization) the populations
+        are not sorted, and it's position on its population cannot depend on the
+        best of other individuals of other populations (circular dependency).
+        Therefore, calling other_population[0] is not an option here.
+
+        The scheme pproposed by Mitchell A. et. al. in "A Cooperative
+        Coevolutionary Approach to Function Optimization", the initialization
+        may be performed by selecting a random individual among the other
+        populations instead the best. For this purpose, a random() method in
+        Population class is provided.
+
+        The default behavior is to call method "perform" but can be overridden
+        to any other behavior if needed.
+
+        :param individual: The individual to which estimate the adaptation.
+        :return: A sortable object representing the adaptation of the individual
+            to the environment.
+        """
+        return self.perform(individual)
 
     @abc.abstractmethod
     def perform(self, individual):
@@ -369,5 +427,6 @@ class FitnessMethod(metaclass=abc.ABCMeta):
         fitness value is, the fittest the individual is in the environment.
 
         :param individual: The individual to which estimate the adaptation.
-        :return: A sortable object.
+        :return: A sortable object representing the adaptation of the individual
+            to the environment.
         """
