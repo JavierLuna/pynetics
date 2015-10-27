@@ -54,7 +54,7 @@ class SelectionMethod(metaclass=abc.ABCMeta):
         return self.__rep
 
 
-class BestIndividualSelection(SelectionMethod):
+class BestIndividual(SelectionMethod):
     """ Selects the best individuals among the population. """
 
     def perform(self, population, n):
@@ -71,7 +71,7 @@ class BestIndividualSelection(SelectionMethod):
         return [population[0] for _ in range(n)] if self.rep else population[:n]
 
 
-class ProportionalToPositionSelection(SelectionMethod):
+class ProportionalToPosition(SelectionMethod):
     """ Selects individuals randomly proportionally to their position. """
 
     def perform(self, population, n):
@@ -93,7 +93,7 @@ class ProportionalToPositionSelection(SelectionMethod):
         raise NotImplementedError()
 
 
-class TournamentSelection(SelectionMethod):
+class Tournament(SelectionMethod):
     """ Selects best individuals of a random sample of the whole population. """
 
     def __init__(self, m, rep=False):
@@ -130,7 +130,7 @@ class TournamentSelection(SelectionMethod):
         return individuals
 
 
-class UniformSelection(SelectionMethod):
+class Uniform(SelectionMethod):
     """ Selects individuals randomly from the population. """
 
     def perform(self, population, n):

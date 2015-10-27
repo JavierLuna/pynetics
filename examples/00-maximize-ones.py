@@ -3,7 +3,7 @@ from pynetics.catastrophe import NoCatastrophe
 from pynetics.ga_list import TwoPointCrossover, RandomGeneValue
 from pynetics.ga_list.ga_bin import BinaryIndividualSpawningPool, binary_alleles
 from pynetics.replacement import LowElitism
-from pynetics.selection import BestIndividualSelection
+from pynetics.selection import BestIndividual
 from pynetics.stop import StepsNumStopCondition
 
 population_size = 100
@@ -30,7 +30,7 @@ if __name__ == '__main__':
                 MaximizeOnesFitness()
             )
         ],
-        BestIndividualSelection(),
+        BestIndividual(),
         LowElitism(),
         TwoPointCrossover(),
         RandomGeneValue(binary_alleles),

@@ -6,7 +6,7 @@ from pynetics.crossover import NoCrossover
 from pynetics.ga_list import ListIndividual
 from pynetics.mutation import NoMutation
 from pynetics.replacement import LowElitism
-from pynetics.selection import BestIndividualSelection
+from pynetics.selection import BestIndividual
 from pynetics.stop import StepsNumStopCondition
 
 
@@ -34,7 +34,7 @@ class TestGeneticAlgorithm(TestCase):
             [
                 Population(100, 50, DummySpawningPool(), DummyFitness())
             ],
-            BestIndividualSelection(),
+            BestIndividual(),
             LowElitism(),
             NoCrossover(2),
             NoMutation(),
