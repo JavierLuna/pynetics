@@ -36,10 +36,6 @@ class TestPopulation(TestCase):
     # TODO Tests to check that the order of individuals is respected.
     # TODO Tests valid input parameters
 
-    def get_genetic_algorithm(self):
-        ga = mock.Mock(spec=GeneticAlgorithm)
-        return ga
-
     def individuals(self, n):
         individuals = []
         for i in range(10):
@@ -53,7 +49,6 @@ class TestPopulation(TestCase):
         for size in (-1, 0):
             with self.assertRaises(InvalidPopulationSizeError):
                 Population(
-                    self.get_genetic_algorithm(),
                     size,
                     5,
                     DummySpawningPool(self.individuals(3)),
@@ -65,7 +60,6 @@ class TestPopulation(TestCase):
         individuals = self.individuals(10)
 
         population = Population(
-            self.get_genetic_algorithm(),
             10,
             5,
             DummySpawningPool(individuals),
@@ -79,7 +73,6 @@ class TestPopulation(TestCase):
         """ Calling spawn actually generates individuals. """
         individuals = self.individuals(10)
         population = Population(
-            self.get_genetic_algorithm(),
             len(individuals),
             len(individuals),
             DummySpawningPool(individuals),
@@ -94,7 +87,6 @@ class TestPopulation(TestCase):
         size = 5
         individuals = self.individuals(2 * size)
         population = Population(
-            self.get_genetic_algorithm(),
             size,
             size - 1,
             DummySpawningPool(individuals[:size]),

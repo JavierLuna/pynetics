@@ -1,5 +1,6 @@
 import abc
 import random
+import collections
 
 from pynetics import SpawningPool, Individual
 from pynetics.crossover import CrossoverMethod
@@ -21,13 +22,22 @@ class FiniteSetAlleles(Alleles):
     def __init__(self, values):
         """ Initializes this set of alleles with its sequence of symbols.
 
+        The duplicated values are removed in the list maintained by this alleles
+        class, but the order is maintained.
+
         :param values: The sequence of symbols.
         """
-        self.__values = list(set(values))
+        values = check_is_instance_of(values, collections.Sequence)
+        self.__values = list(collections.OrderedDict.fromkeys(values))
 
     def get(self):
         """ A random value is selected uniformly over the set of values. """
         return random.choice(self.__values)
+
+    @property
+    def values(self):
+        """ Returns the list of values for genes allowed by this instance. """
+        return self.__values[:]
 
 
 class ListIndividualSpawningPool(SpawningPool, metaclass=abc.ABCMeta):

@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from pynetics import GeneticAlgorithm, FitnessMethod, SpawningPool
+from pynetics import GeneticAlgorithm, FitnessMethod, SpawningPool, Population
 from pynetics.catastrophe import NoCatastrophe
 from pynetics.crossover import NoCrossover
 from pynetics.ga_list import ListIndividual
@@ -32,7 +32,7 @@ class TestGeneticAlgorithm(TestCase):
         ga = GeneticAlgorithm(
             StepsNumStopCondition(steps),
             [
-                (100, 50, DummySpawningPool(), DummyFitness())
+                Population(100, 50, DummySpawningPool(), DummyFitness())
             ],
             BestIndividualSelection(),
             LowElitism(),

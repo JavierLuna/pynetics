@@ -20,7 +20,7 @@ class GeneticAlgorithm:
     def __init__(
             self,
             stop_condition,
-            populations_desc,
+            populations,
             select_method,
             replace_method,
             crossover_method,
@@ -45,11 +45,7 @@ class GeneticAlgorithm:
 
         :param stop_condition: The condition to be met in order to stop the
             genetic algorithm.
-        :param populations_desc: The description of the populations to
-            be created and evolved in this algorithm. It is expected to be a
-            list of 4-tuple elements in the form (population_size, replacement
-            rate, spawning_pool, fitness_method). For more information in the
-            method description.
+        :param populations: The populations to be evolved.
         :param select_method: The method to be used as selection scheme.
         :param replace_method: The method to be used as replacement scheme.
         :param crossover_method: The method to be used as crossover operator
@@ -72,7 +68,9 @@ class GeneticAlgorithm:
             stop_condition,
             StopCondition
         )
-        self.__populations_desc = populations_desc[:]
+        self.__populations = populations
+        for population in self.__populations:
+            population.genetic_algorithm = self
         self.__select = select_method
         self.__replace = replace_method
         self.__cross = crossover_method
@@ -81,7 +79,6 @@ class GeneticAlgorithm:
         self.__p_crossover = p_crossover
         self.__p_mutation = p_mutation
         self.__generation = 0
-        self.__populations = []
 
     def run(self):
         """ Runs the simulation.
@@ -102,18 +99,6 @@ class GeneticAlgorithm:
         """ Called when starting the genetic algorithm to initialize it. """
         self.__generation = 0
         # Create the populations and, after that, initialize its individuals
-        self.__populations = [
-            Population(
-                self,
-                population_size,
-                replacement_rate,
-                spawning_pool,
-                fitness_method,
-            )
-            for
-            population_size, replacement_rate, spawning_pool, fitness_method
-            in self.__populations_desc
-            ]
         [population.initialize() for population in self.__populations]
 
     def __generate_offspring(self, population):
@@ -163,7 +148,6 @@ class Population(list):
 
     def __init__(
             self,
-            genetic_algorithm,
             size,
             replacement_rate,
             spawning_pool,
@@ -183,8 +167,6 @@ class Population(list):
         population[1] the next and so on, until population[-1] which is the less
         fit.
 
-        :param genetic_algorithm: The genetic algorithm to which this population
-            belongs.
         :param size: The size this population should have.
         :param spawning_pool: The object that generates individuals.
         :param fitness_method: The method to evaluate individuals.
@@ -205,10 +187,6 @@ class Population(list):
         else:
             self.__replacement_rate = replacement_rate
 
-        self.__genetic_algorithm = check_is_instance_of(
-            genetic_algorithm,
-            GeneticAlgorithm,
-        )
         self.__spawning_pool = check_is_instance_of(
             spawning_pool,
             SpawningPool,
@@ -218,6 +196,7 @@ class Population(list):
             FitnessMethod,
         )
 
+        self.__genetic_algorithm = None
         self.__sorted = False
         self.__other_populations = None
 
@@ -234,7 +213,7 @@ class Population(list):
             [
                 (i, self.__fitness_method(i, init=True))
                 for i in self.__first_individuals
-            ],
+                ],
             key=operator.itemgetter(1),
             reverse=True,
         )
@@ -324,6 +303,14 @@ class Population(list):
     def genetic_algorithm(self):
         """ Returns the genetic algorithm to which this population belongs. """
         return self.__genetic_algorithm
+
+    @genetic_algorithm.setter
+    def genetic_algorithm(self, genetic_algorithm):
+        """ Sets the algorithm where this population is going to be evolved. """
+        self.__genetic_algorithm = check_is_instance_of(
+            genetic_algorithm,
+            GeneticAlgorithm,
+        )
 
     @property
     def replacement_rate(self):

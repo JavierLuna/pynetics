@@ -1,10 +1,14 @@
-from pynetics import FitnessMethod, GeneticAlgorithm
+from pynetics import FitnessMethod, GeneticAlgorithm, Population
 from pynetics.catastrophe import NoCatastrophe
 from pynetics.ga_list import TwoPointCrossover, RandomGeneValue
 from pynetics.ga_list.ga_bin import BinaryIndividualSpawningPool, binary_alleles
 from pynetics.replacement import LowElitism
 from pynetics.selection import BestIndividualSelection
 from pynetics.stop import StepsNumStopCondition
+
+population_size = 100
+replacement_rate = 100
+individual_size = 30
 
 
 class MaximizeOnesFitness(FitnessMethod):
@@ -15,14 +19,11 @@ class MaximizeOnesFitness(FitnessMethod):
 
 
 if __name__ == '__main__':
-    population_size = 100
-    replacement_rate = 100
-    individual_size = 30
 
     ga = GeneticAlgorithm(
         StepsNumStopCondition(100),
         [
-            (
+            Population(
                 population_size,
                 replacement_rate,
                 BinaryIndividualSpawningPool(individual_size),
