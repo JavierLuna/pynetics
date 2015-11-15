@@ -322,6 +322,11 @@ class Population(list):
         """ Returns the genetic algorithm to which this population belongs. """
         return self.__spawning_pool
 
+    @property
+    def fitness_method(self):
+        """ Returns the genetic algorithm to which this population belongs. """
+        return self.__spawning_pool
+
 
 class Individual(metaclass=abc.ABCMeta):
     """ One of the possible solutions to a problem.
