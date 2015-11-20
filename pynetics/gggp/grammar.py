@@ -2,7 +2,6 @@ import abc
 import collections
 import operator
 import random
-
 from pynetics import take_chances
 
 
@@ -198,26 +197,31 @@ class Or(Connector):
 
 
 class Multiplier(Term, metaclass=abc.ABCMeta):
-    """ A Multiplier instance holds an element that may appear many times.
+    """ A Multiplier instance that holds a term that may appear many times. """
 
-    This element would be a Term instance, but cannot be a Multiplier instance.
-    """
-
-    def __init__(self, value):
+    def __init__(self, value, *, lower=None, upper=None, p=0.5):
         """ Initializes this instance with the value.
 
         :param value: The term to be managed. It should be a Term instance other
             than a Multiplier instance.
+        :param lower: The minimum times the term should appear according to the
+            grammar. It defaults to 0.
+        :param upper: The maximum times the term may appear. It defaults to
+            infinite, meaning that there is no limit of the times the term may
+            appear.
+        :param p: In case of generating terms, this param says w
         :raises ValueError: If the value is not a Term instance.
         """
         super().__init__(value=self.__process_value(value))
+        self.__lower, self.__upper = self.__process_limits(lower, upper)
+        self.__p = self.__check_probability(p)
 
     @staticmethod
     def __process_value(value):
         """ Processes that the value, validating it.
 
         For this purpose it will check if value is an instance of Term (other
-        than Multiplier) or a string. If it's the former, it will return it. If
+        than a NToM term) or a string. If it's the former, it will return it. If
         it's the latter, it will return a SingleTerm with the string as it's
         content. If it's not a Term or a string, or if it's a Multiplier, the
         method will raise a ValueError.
@@ -226,45 +230,36 @@ class Multiplier(Term, metaclass=abc.ABCMeta):
         if not isinstance(value, (Term, str)):
             error_msg = 'should be an Term instance (but not a Multiplier one)'
         elif isinstance(value, Multiplier):
-            error_msg = 'cannot be a Multiplier instance'
+            error_msg = 'cannot be a NToM instance'
 
         if error_msg:
             raise ValueError('Parameter "value" ' + error_msg)
         else:
             return SingleTerm(value) if isinstance(value, str) else value
 
-    def __eq__(self, other):
-        """ Tell if this instance is equal to other by its content. """
-        if self is other:
-            return True
-        elif not isinstance(other, Term):
-            return False
-        else:
-            return self.value == other.value
+    @staticmethod
+    def __process_limits(lower, upper):
+        """ Ensure that limits are specified correctly.
 
-
-class ZeroOrOne(Multiplier):
-    """ Represents a term that appears 0 or 1 time.
-
-    This term will have a probability (in case of not specifying, it'll be 0.5)
-    of exist given by the p parameter at init time.
-    """
-
-    def __init__(self, value, p=.5):
-        """ Initializes the instance.
-
-        :param value: The value for this term. Is expected that subclasses
-            implements the required validations for this value as Term will only
-            maintain its value.
-        :param p: The probability of this term to appear.
-        :raises ValueError: If the probability does not belong to [0., 1.]
-            interval.
+        :param lower: The lower bound of the interval.
+        :param upper: The upper bound of the interval.
+        :return: The correct lower and upper bounds.
+        :raises ValueError: If any of the bounds isn't correct (e.g. not an
+            integer) or if the upper bound is not greater than the lower bound.
         """
-        super().__init__(value=value)
-        self.__p = self.__check_p(p)
+        try:
+            lower = int(lower) if lower is not None else 0
+            upper = int(upper) if upper is not None else float('Inf')
+
+            if lower < upper:
+                return lower, upper
+            else:
+                ValueError('Upper limit should be greater than lower limit')
+        except ValueError:
+            raise ValueError('Lower or upper is not an integer')
 
     @staticmethod
-    def __check_p(p):
+    def __check_probability(p):
         """ Checks p is valid, i.e. a float value x ∈ [0.0, 1.0]. """
         if p is None or not isinstance(p, float) or not (0. <= p <= 1.):
             error_msg = 'The term p should be an float x ∈ [0.0, 1.0]'
@@ -272,122 +267,43 @@ class ZeroOrOne(Multiplier):
         else:
             return p
 
+    def __eq__(self, other):
+        """ Tell if this instance is equal to other by its content. """
+        if self is other:
+            return True
+        else:
+            eq_limits = self.lower == other.lower and self.upper == other.upper
+            eq_p = self.p == other.p
+            eq_value = self.value == other.value
+            return isinstance(other, Term) and eq_limits and eq_p and eq_value
+
+    @property
+    def lower(self):
+        """ Returns the minimum times a the managed term should appear. """
+        return self.__lower
+
+    @property
+    def upper(self):
+        """ Returns the maximum times this term may appear. """
+        return self.__upper
+
     @property
     def p(self):
-        """ Returns the probability of this term to appear. """
+        """ Returns the probability of a new appearance of this term. """
         return self.__p
 
-    def __eq__(self, other):
-        """ Tell if this instance is equal to other by its content. """
-        return super().__eq__(other) and self.p == other.p
-
     def random_derivation(self):
-        """ This term returns a tuple with the element or empty.
+        """ Returns a tuple with the managed term according to limits and p.
 
-        The probability of the underneath Term to appear is the one specified by
-        parameter "p" at initialization time.
+        The minimum size of the returned tuple will be the lower limit
+        specified in the init param "lower". After that, and with a maximum
+        of "upper" terms, a new param will be added as long as random tests fall
+        under the probability specified.
         """
-        return (self.value,) if take_chances(self.p) else tuple()
-
-
-class ZeroOrMore(Multiplier):
-    """ Represents a term that should appear 0 or more times in a sentence. """
-
-    def random_derivation(self):
-        """ This term returns a tuple with zero or more terms. """
-        terms = []
-        while take_chances():
+        terms = [self.value for _ in range(self.lower)]
+        while len(terms) < self.upper and take_chances(self.p):
             terms.append(self.value)
         return tuple(terms)
-
-
-class ZeroToN(Multiplier):
-    """ Represents a term should can appear from 0 to n times in a sentence. """
-
-    def __init__(self, value, n):
-        """ Initializes this instance.
-
-        :param value: The term to be managed by the instance. Should be a Term
-            instance other than Multiplier.
-        :param n: The maximum number of appearances of the term. Should be a
-            number greater than 0 (from 0 to n appearances).
-        """
-        super().__init__(value)
-        self.__n = self.__validate_n(n)
-
-    @staticmethod
-    def __validate_n(n):
-        """ Checks that n is a valid parameter. """
-        error_msg = None
-        if not isinstance(n, int) or n <= 1:
-            error_msg = 'should be an integer value greater or equal to 1'
-
-        if error_msg:
-            raise ValueError('Parameter "n" ' + error_msg)
-        else:
-            return n
-
-    @property
-    def n(self):
-        return self.__n
-
-    def __eq__(self, other):
-        """ Tell if this instance is equal to other by its content. """
-        return super().__eq__(other) and self.n == other.n
-
-    def random_derivation(self):
-        """ Returns a tuple with a number of terms between zero and n. """
-        return tuple(self.value for _ in range(random.randint(0, self.n)))
-
-
-class OneOrMore(Multiplier):
-    """ Represents a term that should appear 1 or more times in a sentence. """
-
-    def random_derivation(self):
-        """ This term returns a tuple with zero or more terms. """
-        terms = [self.value]
-        while take_chances():
-            terms.append(self.value)
-        return tuple(terms)
-
-
-class OneToN(Multiplier):
-    """ Represents a term should can appear from 1 to n times in a sentence. """
-
-    def __init__(self, value, n):
-        """ Initializes this instance.
-
-        :param value: The term to be managed by the instance. Should be a Term
-            instance other than Multiplier.
-        :param n: The maximum number of appearances of the term. Should be a
-            number greater than 1 (from 1 to n appearances).
-        """
-        super().__init__(value)
-        self.__n = self.__validate_n(n)
-
-    @staticmethod
-    def __validate_n(n):
-        """ Checks that n is a valid parameter. """
-        error_msg = None
-        if not isinstance(n, int) or n < 1:
-            error_msg = 'should be an integer value greater than 1'
-
-        if error_msg:
-            raise ValueError('Parameter "n" ' + error_msg)
-        else:
-            return n
-
-    @property
-    def n(self):
-        return self.__n
-
-    def __eq__(self, other):
-        """ Tell if this instance is equal to other by its content. """
-        return super().__eq__(other) and self.n == other.n
-
-    def random_derivation(self):
-        """ Returns a tuple with a number of terms between zero and n. """
-        return tuple(self.value for _ in range(random.randint(1, self.n)))
 
 
 class SingleTerm(Term):

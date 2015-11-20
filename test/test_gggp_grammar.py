@@ -1,5 +1,4 @@
 from unittest import TestCase
-
 from pynetics.gggp import grammar
 
 
@@ -149,12 +148,14 @@ class OrTestCase(TestCase):
         self.assertEquals(tuple(1 for _ in value), or_connector.weights)
 
 
-class ZeroOrOneTestCase(TestCase):
-    """ Test for ZeroOrOne instances (optional terms).
+class MultiplierTestCase(TestCase):
+    """ Test for Multiplier instances. """
 
-    This term will have a probability (in case of not specifying, it'll be 0.5)
-    of exist given by the p parameter at init time.
-    """
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.__default_lower = 0
+        self.__default_upper = float('Inf')
+        self.__default_p = 0.5
 
     def test_value_is_not_a_term_or_is_a_multiple_term(self):
         """ Param value should be a term other than Multiplier instance. """
@@ -163,14 +164,10 @@ class ZeroOrOneTestCase(TestCase):
                 (),
                 {},
                 None,
-                grammar.ZeroOrOne(grammar.SingleTerm('t')),
-                grammar.ZeroOrMore(grammar.SingleTerm('t')),
-                grammar.ZeroToN(grammar.SingleTerm('t'), 5),
-                grammar.OneOrMore(grammar.SingleTerm('t')),
-                grammar.OneToN(grammar.SingleTerm('t'), 5),
+                grammar.Multiplier(grammar.SingleTerm('t')),
         ):
             with self.assertRaises(ValueError):
-                grammar.ZeroOrOne(invalid_value)
+                grammar.Multiplier(invalid_value)
 
     def test_p_should_be_an_int_or_float(self):
         """ Value p should be a number between 0.0 and 1.0 both incl. """
@@ -184,239 +181,243 @@ class ZeroOrOneTestCase(TestCase):
                 1.1,
         ):
             with self.assertRaises(ValueError):
-                grammar.ZeroOrOne(grammar.SingleTerm('t'), invalid_p)
+                grammar.Multiplier(grammar.SingleTerm('t'), p=invalid_p)
 
     def test_different_instances_with_same_content_are_equal(self):
         """ If two different instances has the same content are equal. """
         self.assertEquals(
-            grammar.ZeroOrOne('t'),
-            grammar.ZeroOrOne('t'),
+            grammar.Multiplier('t'),
+            grammar.Multiplier('t'),
         )
 
-    def test_correct_construction_with_term_without_p(self):
-        """ Correct value leads to a correct term with p = 0.5. """
-        value = grammar.SingleTerm('t')
-        zero_or_one = grammar.ZeroOrOne(value)
-        self.assertEquals(value, zero_or_one.value)
-        self.assertAlmostEqual(0.5, zero_or_one.p)
+    def test_correct_construction_with_string_without_anything(self):
+        """ Correct construction without optional params and a string term.
 
-    def test_correct_construction_with_string_without_p(self):
-        """ Correct value leads to a correct term with p = 0.5. """
-        value = 't'
-        zero_or_one = grammar.ZeroOrOne(value)
-        self.assertEquals(grammar.SingleTerm(value), zero_or_one.value)
-        self.assertAlmostEqual(0.5, zero_or_one.p)
+        That means that "lower", "upper" and "p" take the correct values.
+        """
+        str_value = 't'
+        value = grammar.SingleTerm(str_value)
+        multiplier = grammar.Multiplier(str_value)
+        self.assertEquals(value, multiplier.value)
+        self.assertEquals(self.__default_lower, multiplier.lower)
+        self.assertEquals(self.__default_upper, multiplier.upper)
+        self.assertAlmostEqual(self.__default_p, multiplier.p)
 
-    def test_correct_construction_with_term(self):
-        """ Correct value and p leads to a correctly built term. """
-        value = grammar.SingleTerm('t')
-        p = 0.1
-        zero_or_one = grammar.ZeroOrOne(value, p)
-        self.assertEquals(value, zero_or_one.value)
-        self.assertAlmostEqual(p, zero_or_one.p)
+    def test_correct_construction_with_string_with_only_lower(self):
+        """ Correct construction with only "lower" param and a string term.
 
-    def test_correct_construction_with_string(self):
-        """ Correct value and p leads to a correctly built term. """
-        value = 't'
-        p = 0.1
-        zero_or_one = grammar.ZeroOrOne(value, p)
-        self.assertEquals(grammar.SingleTerm(value), zero_or_one.value)
-        self.assertAlmostEqual(p, zero_or_one.p)
+        That means that "upper" and "p" take the correct values.
+        """
+        str_value = 't'
+        value = grammar.SingleTerm(str_value)
+        lower = 1
+        multiplier = grammar.Multiplier(str_value, lower=lower)
+        self.assertEquals(value, multiplier.value)
+        self.assertEquals(lower, multiplier.lower)
+        self.assertEquals(self.__default_upper, multiplier.upper)
+        self.assertAlmostEqual(self.__default_p, multiplier.p)
 
+    def test_correct_construction_with_string_with_only_upper(self):
+        """ Correct construction with only "upper" param and a string term.
 
-class ZeroOrMoreTestCase(TestCase):
-    """ Represents a term that should appear 0 or more times in a sentence. """
+        That means that "lower" and "p" take the correct values.
+        """
+        str_value = 't'
+        value = grammar.SingleTerm(str_value)
+        upper = 1
+        multiplier = grammar.Multiplier(str_value, upper=upper)
+        self.assertEquals(value, multiplier.value)
+        self.assertEquals(self.__default_lower, multiplier.lower)
+        self.assertEquals(upper, multiplier.upper)
+        self.assertAlmostEqual(self.__default_p, multiplier.p)
 
-    def test_value_is_not_a_term_or_is_a_multiple_term(self):
-        """ Param value should be a term other than Multiplier instance. """
-        for invalid_value in (
-                [],
-                (),
-                {},
-                None,
-                grammar.ZeroOrOne(grammar.SingleTerm('t')),
-                grammar.ZeroOrMore(grammar.SingleTerm('t')),
-                grammar.ZeroToN(grammar.SingleTerm('t'), 5),
-                grammar.OneOrMore(grammar.SingleTerm('t')),
-                grammar.OneToN(grammar.SingleTerm('t'), 5),
-        ):
-            with self.assertRaises(ValueError):
-                grammar.ZeroOrMore(invalid_value)
+    def test_correct_construction_with_string_with_only_p(self):
+        """ Correct construction with only "p" param and a string term.
 
-    def test_different_instances_with_same_content_are_equal(self):
-        """ If two different instances has the same content are equal. """
-        self.assertEquals(
-            grammar.ZeroOrMore('t'),
-            grammar.ZeroOrMore('t'),
+        That means that "lower" and "upper" take the correct values.
+        """
+        str_value = 't'
+        value = grammar.SingleTerm(str_value)
+        p = 0.2
+        multiplier = grammar.Multiplier(str_value, p=p)
+        self.assertEquals(value, multiplier.value)
+        self.assertEquals(self.__default_lower, multiplier.lower)
+        self.assertEquals(self.__default_upper, multiplier.upper)
+        self.assertAlmostEqual(p, multiplier.p)
+
+    def test_correct_construction_with_string_with_lower_and_upper(self):
+        """ Correct construction with only "lower" and "upper" param and a
+        string term.
+
+        That means that "p" takes the correct value.
+        """
+        str_value = 't'
+        value = grammar.SingleTerm(str_value)
+        lower = 3
+        upper = 5
+        multiplier = grammar.Multiplier(str_value, lower=lower, upper=upper)
+        self.assertEquals(value, multiplier.value)
+        self.assertEquals(lower, multiplier.lower)
+        self.assertEquals(upper, multiplier.upper)
+        self.assertAlmostEqual(self.__default_p, multiplier.p)
+
+    def test_correct_construction_with_string_with_lower_and_p(self):
+        """ Correct construction with only "lower" and "p" param and a
+        string term.
+
+        That means that "upper" takes the correct value.
+        """
+        str_value = 't'
+        value = grammar.SingleTerm(str_value)
+        lower = 7
+        p = 0.75
+        multiplier = grammar.Multiplier(str_value, lower=lower, p=p)
+        self.assertEquals(value, multiplier.value)
+        self.assertEquals(lower, multiplier.lower)
+        self.assertEquals(self.__default_upper, multiplier.upper)
+        self.assertAlmostEqual(p, multiplier.p)
+
+    def test_correct_construction_with_string_with_upper_and_p(self):
+        """ Correct construction with only "upper" and "p" param and a
+        string term.
+
+        That means that "lower" takes the correct value.
+        """
+        str_value = 't'
+        value = grammar.SingleTerm(str_value)
+        upper = 7
+        p = 0.75
+        multiplier = grammar.Multiplier(str_value, upper=upper, p=p)
+        self.assertEquals(value, multiplier.value)
+        self.assertEquals(self.__default_lower, multiplier.lower)
+        self.assertEquals(upper, multiplier.upper)
+        self.assertAlmostEqual(p, multiplier.p)
+
+    def test_correct_construction_with_string_with_lower_upper_and_p(self):
+        """ Correct construction with all optional params and a string term. """
+        str_value = 't'
+        value = grammar.SingleTerm(str_value)
+        lower = 1
+        upper = 7
+        p = 0.75
+        multiplier = grammar.Multiplier(
+            str_value,
+            lower=lower,
+            upper=upper,
+            p=p
         )
+        self.assertEquals(value, multiplier.value)
+        self.assertEquals(lower, multiplier.lower)
+        self.assertEquals(upper, multiplier.upper)
+        self.assertAlmostEqual(p, multiplier.p)
 
-    def test_correct_construction_with_term(self):
-        """ Correct value leads to a correctly built term. """
+    def test_correct_construction_with_term_without_anything(self):
+        """ Correct construction without optional params and a term instance.
+
+        That means that "lower", "upper" and "p" take the correct values.
+        """
         value = grammar.SingleTerm('t')
-        zero_or_more = grammar.ZeroOrMore(value)
-        self.assertEquals(value, zero_or_more.value)
+        multiplier = grammar.Multiplier(value)
+        self.assertEquals(value, multiplier.value)
+        self.assertEquals(self.__default_lower, multiplier.lower)
+        self.assertEquals(self.__default_upper, multiplier.upper)
+        self.assertAlmostEqual(self.__default_p, multiplier.p)
 
-    def test_correct_construction_with_string(self):
-        """ Correct value leads to a correctly built term. """
-        value = 't'
-        zero_or_more = grammar.ZeroOrMore(value)
-        self.assertEquals(grammar.SingleTerm(value), zero_or_more.value)
+    def test_correct_construction_with_term_with_only_lower(self):
+        """ Correct construction with only "lower" param and a term instance.
 
-
-class ZeroToNTestCase(TestCase):
-    """ Represents a term should can appear from 0 to n times in a sentence. """
-
-    def test_value_is_not_a_term_or_is_a_multiple_term(self):
-        """ Param value should be a term other than Multiplier instance. """
-        for invalid_value in (
-                [],
-                (),
-                {},
-                None,
-                grammar.ZeroOrOne(grammar.SingleTerm('t')),
-                grammar.ZeroOrMore(grammar.SingleTerm('t')),
-                grammar.ZeroToN(grammar.SingleTerm('t'), 5),
-                grammar.OneOrMore(grammar.SingleTerm('t')),
-                grammar.OneToN(grammar.SingleTerm('t'), 5),
-        ):
-            with self.assertRaises(ValueError):
-                grammar.ZeroToN(invalid_value, 5)
-
-    def test_n_should_be_an_int(self):
-        """ Value p should be a number between 0.0 and 1.0 both incl. """
-        for invalid_n in (
-                [],
-                (),
-                {},
-                None,
-                '7',
-                -0.1,
-                1.0,
-                1.1,
-        ):
-            with self.assertRaises(ValueError):
-                grammar.ZeroToN(grammar.SingleTerm('t'), invalid_n)
-
-    def test_different_instances_with_same_content_are_equal(self):
-        """ If two different instances has the same content are equal. """
-        self.assertEquals(
-            grammar.ZeroToN('t', 2),
-            grammar.ZeroToN('t', 2),
-        )
-
-    def test_correct_construction_with_term(self):
-        """ Correct value and n leads to a correctly built term. """
+        That means that "upper" and "p" take the correct values.
+        """
         value = grammar.SingleTerm('t')
-        n = 5
-        zero_to_n = grammar.ZeroToN(value, n)
-        self.assertEquals(value, zero_to_n.value)
-        self.assertAlmostEqual(n, zero_to_n.n)
+        lower = 1
+        multiplier = grammar.Multiplier(value, lower=lower)
+        self.assertEquals(value, multiplier.value)
+        self.assertEquals(lower, multiplier.lower)
+        self.assertEquals(self.__default_upper, multiplier.upper)
+        self.assertAlmostEqual(self.__default_p, multiplier.p)
 
-    def test_correct_construction_with_string(self):
-        """ Correct value and n leads to a correctly built term. """
-        value = 't'
-        n = 5
-        zero_to_n = grammar.ZeroToN(value, n)
-        self.assertEquals(grammar.SingleTerm(value), zero_to_n.value)
-        self.assertAlmostEqual(n, zero_to_n.n)
+    def test_correct_construction_with_term_with_only_upper(self):
+        """ Correct construction with only "upper" param and a term instance.
 
-
-class OneOrMoreTestCase(TestCase):
-    """ Represents a term that should appear 1 or more times in a sentence. """
-
-    def test_value_is_not_a_term_or_is_a_multiple_term(self):
-        """ Param value should be a term other than Multiplier instance. """
-        for invalid_value in (
-                [],
-                (),
-                {},
-                None,
-                grammar.ZeroOrOne(grammar.SingleTerm('t')),
-                grammar.ZeroOrMore(grammar.SingleTerm('t')),
-                grammar.ZeroToN(grammar.SingleTerm('t'), 5),
-                grammar.OneOrMore(grammar.SingleTerm('t')),
-                grammar.OneToN(grammar.SingleTerm('t'), 5),
-        ):
-            with self.assertRaises(ValueError):
-                grammar.OneOrMore(invalid_value)
-
-    def test_different_instances_with_same_content_are_equal(self):
-        """ If two different instances has the same content are equal. """
-        self.assertEquals(
-            grammar.OneOrMore('t'),
-            grammar.OneOrMore('t'),
-        )
-
-    def test_correct_construction_with_term(self):
-        """ Correct value leads to a correctly built term. """
+        That means that "lower" and "p" take the correct values.
+        """
         value = grammar.SingleTerm('t')
-        one_or_more = grammar.OneOrMore(value)
-        self.assertEquals(value, one_or_more.value)
+        upper = 1
+        multiplier = grammar.Multiplier(value, upper=upper)
+        self.assertEquals(value, multiplier.value)
+        self.assertEquals(self.__default_lower, multiplier.lower)
+        self.assertEquals(upper, multiplier.upper)
+        self.assertAlmostEqual(self.__default_p, multiplier.p)
 
-    def test_correct_construction_with_string(self):
-        """ Correct value leads to a correctly built term. """
-        value = 't'
-        term = grammar.SingleTerm(value)
-        one_or_more = grammar.OneOrMore(value)
-        self.assertEquals(term, one_or_more.value)
+    def test_correct_construction_with_term_with_only_p(self):
+        """ Correct construction with only "p" param and a term instance.
 
-
-class OneToNTestCase(TestCase):
-    """ Represents a term should can appear from 1 to n times in a sentence. """
-
-    def test_value_is_not_a_term_or_is_a_multiple_term(self):
-        """ Param value should be a term other than Multiplier instance. """
-        for invalid_value in (
-                [],
-                (),
-                {},
-                None,
-                grammar.ZeroOrOne(grammar.SingleTerm('t')),
-                grammar.ZeroOrMore(grammar.SingleTerm('t')),
-                grammar.ZeroToN(grammar.SingleTerm('t'), 5),
-                grammar.OneOrMore(grammar.SingleTerm('t')),
-                grammar.OneToN(grammar.SingleTerm('t'), 5),
-        ):
-            with self.assertRaises(ValueError):
-                grammar.OneToN(invalid_value, 5)
-
-    def test_n_should_be_an_int(self):
-        """ Value p should be a number between 0.0 and 1.0 both incl. """
-        for invalid_n in (
-                [],
-                (),
-                {},
-                None,
-                '7',
-                -0.1,
-                1.0,
-                1.1,
-        ):
-            with self.assertRaises(ValueError):
-                grammar.OneToN(grammar.SingleTerm('t'), invalid_n)
-
-    def test_different_instances_with_same_content_are_equal(self):
-        """ If two different instances has the same content are equal. """
-        self.assertEquals(
-            grammar.OneToN('t', 2),
-            grammar.OneToN('t', 2),
-        )
-
-    def test_correct_construction_with_term(self):
-        """ Correct value and n leads to a correctly built term. """
+        That means that "lower" and "upper" take the correct values.
+        """
         value = grammar.SingleTerm('t')
-        n = 5
-        one_to_n = grammar.OneToN(value, n)
-        self.assertEquals(value, one_to_n.value)
-        self.assertAlmostEqual(n, one_to_n.n)
+        p = 0.2
+        multiplier = grammar.Multiplier(value, p=p)
+        self.assertEquals(value, multiplier.value)
+        self.assertEquals(self.__default_lower, multiplier.lower)
+        self.assertEquals(self.__default_upper, multiplier.upper)
+        self.assertAlmostEqual(p, multiplier.p)
 
-    def test_correct_construction_with_string(self):
-        """ Correct value and n leads to a correctly built term. """
-        value = 't'
-        n = 5
-        one_to_n = grammar.OneToN(value, n)
-        self.assertEquals(grammar.SingleTerm(value), one_to_n.value)
-        self.assertAlmostEqual(n, one_to_n.n)
+    def test_correct_construction_with_term_with_lower_and_upper(self):
+        """ Correct construction with only "lower" and "upper" params and a
+        term instance.
+
+        That means that "p" takes the correct value.
+        """
+        value = grammar.SingleTerm('t')
+        lower = 3
+        upper = 5
+        multiplier = grammar.Multiplier(value, lower=lower, upper=upper)
+        self.assertEquals(value, multiplier.value)
+        self.assertEquals(lower, multiplier.lower)
+        self.assertEquals(upper, multiplier.upper)
+        self.assertAlmostEqual(self.__default_p, multiplier.p)
+
+    def test_correct_construction_with_term_with_lower_and_p(self):
+        """ Correct construction with only "lower" and "p" params and a
+        term instance.
+
+        That means that "upper" takes the correct value.
+        """
+        value = grammar.SingleTerm('t')
+        lower = 7
+        p = 0.75
+        multiplier = grammar.Multiplier(value, lower=lower, p=p)
+        self.assertEquals(value, multiplier.value)
+        self.assertEquals(lower, multiplier.lower)
+        self.assertEquals(self.__default_upper, multiplier.upper)
+        self.assertAlmostEqual(p, multiplier.p)
+
+    def test_correct_construction_with_term_with_upper_and_p(self):
+        """ Correct construction with only "upper" and "p" params and a
+        term instance.
+
+        That means that "lower" takes the correct value.
+        """
+        value = grammar.SingleTerm('t')
+        upper = 7
+        p = 0.75
+        multiplier = grammar.Multiplier(value, upper=upper, p=p)
+        self.assertEquals(value, multiplier.value)
+        self.assertEquals(self.__default_lower, multiplier.lower)
+        self.assertEquals(upper, multiplier.upper)
+        self.assertAlmostEqual(p, multiplier.p)
+
+    def test_correct_construction_with_term_with_lower_upper_and_p(self):
+        """ Correct construction with all params and a term instance. """
+        value = grammar.SingleTerm('t')
+        lower = 1
+        upper = 7
+        p = 0.75
+        multiplier = grammar.Multiplier(value, lower=lower, upper=upper, p=p)
+        self.assertEquals(value, multiplier.value)
+        self.assertEquals(lower, multiplier.lower)
+        self.assertEquals(upper, multiplier.upper)
+        self.assertAlmostEqual(p, multiplier.p)
 
 
 class TestProduction(TestCase):
