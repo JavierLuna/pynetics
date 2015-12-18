@@ -27,6 +27,7 @@ class FiniteSetAlleles(Alleles):
 
         :param values: The sequence of symbols.
         """
+        # TODO Tiene toda la pinta de que se pueda mantener como Sequence
         values = check_is_instance_of(values, collections.Sequence)
         self.__values = list(collections.OrderedDict.fromkeys(values))
 
@@ -51,7 +52,7 @@ class ListIndividualSpawningPool(SpawningPool, metaclass=abc.ABCMeta):
         :param alleles: The alleles to be used as values of the genes.
         """
         self.__size = size
-        self.__alleles = alleles
+        self.alleles = alleles
 
     def create(self):
         """ Creates a new individual randomly.
@@ -60,7 +61,7 @@ class ListIndividualSpawningPool(SpawningPool, metaclass=abc.ABCMeta):
         """
         individual = ListIndividual()
         for _ in range(self.__size):
-            individual.append(self.__alleles.get())
+            individual.append(self.alleles.get())
         return individual
 
 

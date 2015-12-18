@@ -181,7 +181,8 @@ class Population(list):
         if size < 1:
             raise InvalidPopulationSizeError()
         else:
-            self.__size = size
+            self.__first_individuals = []
+
         if not 0 < replacement_rate <= size:
             raise InvalidReplacementRateError()
         else:
@@ -200,7 +201,10 @@ class Population(list):
         self.__sorted = False
         self.__other_populations = None
 
-        self.__first_individuals = [self.spawn() for _ in range(self.__size)]
+        for _ in range(size):
+            individual = self.spawn()
+            individual.population = self
+            self.__first_individuals.append(individual)
 
     def initialize(self):
         """ Initializes the fitness of all individuals of this population.
@@ -325,7 +329,7 @@ class Population(list):
     @property
     def fitness_method(self):
         """ Returns the genetic algorithm to which this population belongs. """
-        return self.__spawning_pool
+        return self.__fitness_method
 
 
 class Individual(metaclass=abc.ABCMeta):
@@ -337,17 +341,7 @@ class Individual(metaclass=abc.ABCMeta):
 
     def __init__(self):
         """ Initializes the individual. """
-        self.__population = None
-
-    @property
-    def population(self):
-        """ Returns the population to which this individual belongs. """
-        return self.__population
-
-    @population.setter
-    def population(self, population):
-        """ Sets the population for this individual. """
-        self.__population = population
+        self.population = None
 
 
 class SpawningPool(metaclass=abc.ABCMeta):
