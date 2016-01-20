@@ -1,15 +1,15 @@
 import abc
 
-from pynetics import take_chances
-
-
 # TODO I'm not proud of this methods. I think they performance may be improved.
+from .utils import take_chances
 
-class CatastropheMethod(metaclass=abc.ABCMeta):
+
+class Catastrophe(metaclass=abc.ABCMeta):
     """ Defines the behaviour of a genetic algorithm catastrophe operator.
 
-    It's expected that this operator keep track of when to act, since it will be
-    called every step of the algorithm after replacement operation.
+    It's expected for this operator to keep track of the ga and know when to act
+    since it will be called every step of the algorithm after replacement
+    operation.
     """
 
     def __call__(self, population):
@@ -33,7 +33,7 @@ class CatastropheMethod(metaclass=abc.ABCMeta):
         """
 
 
-class NoCatastrophe(CatastropheMethod):
+class NoCatastrophe(Catastrophe):
     """ A catastrophe method where nothing happens. """
 
     def perform(self, population):
@@ -44,7 +44,7 @@ class NoCatastrophe(CatastropheMethod):
         pass
 
 
-class ProbabilityBasedCatastrophe(CatastropheMethod, metaclass=abc.ABCMeta):
+class ProbabilityBasedCatastrophe(Catastrophe, metaclass=abc.ABCMeta):
     """ Base class for some bundled probability based catastrophe methods.
 
     This method will have a probability to be triggered. Is expected this

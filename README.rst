@@ -35,7 +35,7 @@ WIP
 Authors
 *******
 
-`harvester` was written by `Blazaid <alberto.da@gmail.com>`_.
+`pynetics` was written by `Blazaid <alberto.da@gmail.com>`_.
 
 Thanks
 ======

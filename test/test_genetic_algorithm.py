@@ -1,12 +1,12 @@
 from unittest import TestCase
 
-from pynetics import GeneticAlgorithm, FitnessMethod, SpawningPool, Population
+from pynetics import GeneticAlgorithm, Fitness, SpawningPool, Population
 from pynetics.catastrophe import NoCatastrophe
-from pynetics.crossover import NoCrossover
+from pynetics.recombination import NoRecombination
 from pynetics.ga_list import ListIndividual
 from pynetics.mutation import NoMutation
-from pynetics.replacement import LowElitism
-from pynetics.selection import BestIndividual
+from pynetics.replacements import LowElitism
+from pynetics.selections import BestIndividual
 from pynetics.stop import StepsNumStopCondition
 
 
@@ -20,7 +20,7 @@ class DummySpawningPool(SpawningPool):
         return l
 
 
-class DummyFitness(FitnessMethod):
+class DummyFitness(Fitness):
     def perform(self, individual):
         return 1
 
@@ -36,7 +36,7 @@ class TestGeneticAlgorithm(TestCase):
             ],
             BestIndividual(),
             LowElitism(),
-            NoCrossover(2),
+            NoRecombination(2),
             NoMutation(),
             NoCatastrophe(),
             0.75,

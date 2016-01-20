@@ -3,7 +3,7 @@ import operator
 import random
 
 
-class SelectionMethod(metaclass=abc.ABCMeta):
+class Selection(metaclass=abc.ABCMeta):
     """ Selection of the fittest individuals among the population.
 
     The selection method is defined as a class. However, it is enough to provide
@@ -54,7 +54,7 @@ class SelectionMethod(metaclass=abc.ABCMeta):
         return self.__rep
 
 
-class BestIndividual(SelectionMethod):
+class BestIndividual(Selection):
     """ Selects the best individuals among the population. """
 
     def perform(self, population, n):
@@ -71,7 +71,7 @@ class BestIndividual(SelectionMethod):
         return [population[0] for _ in range(n)] if self.rep else population[:n]
 
 
-class ProportionalToPosition(SelectionMethod):
+class ProportionalToPosition(Selection):
     """ Selects individuals randomly proportionally to their position. """
 
     def perform(self, population, n):
@@ -93,7 +93,7 @@ class ProportionalToPosition(SelectionMethod):
         raise NotImplementedError()
 
 
-class Tournament(SelectionMethod):
+class Tournament(Selection):
     """ Selects best individuals of a random sample of the whole population. """
 
     def __init__(self, m, rep=False):
@@ -124,13 +124,13 @@ class Tournament(SelectionMethod):
         individuals = []
         while len(individuals) < n:
             sample = random.sample(population, self.__m)
-            individual = max(sample, key=operator.methodcaller('fitness'))
+            individual = max(sample, key=lambda i: population.fitness(i))
             if not self.rep or individual not in individuals:
                 individuals.append(individual)
         return individuals
 
 
-class Uniform(SelectionMethod):
+class Uniform(Selection):
     """ Selects individuals randomly from the population. """
 
     def perform(self, population, n):

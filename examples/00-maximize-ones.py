@@ -1,9 +1,10 @@
-from pynetics import FitnessMethod, GeneticAlgorithm, Population
+from pynetics import Fitness, Population
+from pynetics.algorithms import GeneticAlgorithm
 from pynetics.catastrophe import NoCatastrophe
-from pynetics.ga_list import TwoPointCrossover, RandomGeneValue
+from pynetics.ga_list import TwoPointRecombination, RandomGeneValue
 from pynetics.ga_list.ga_bin import BinaryIndividualSpawningPool, binary_alleles
-from pynetics.replacement import LowElitism
-from pynetics.selection import BestIndividual
+from pynetics.replacements import LowElitism
+from pynetics.selections import BestIndividual
 from pynetics.stop import StepsNumStopCondition
 
 population_size = 100
@@ -11,7 +12,7 @@ replacement_rate = 100
 individual_size = 30
 
 
-class MaximizeOnesFitness(FitnessMethod):
+class MaximizeOnesFitness(Fitness):
     """ Fitness where more 1's implies higher fitness. """
 
     def perform(self, individual):
@@ -19,26 +20,26 @@ class MaximizeOnesFitness(FitnessMethod):
 
 
 if __name__ == '__main__':
-
     ga = GeneticAlgorithm(
         StepsNumStopCondition(100),
         [
             Population(
-                population_size,
-                replacement_rate,
-                BinaryIndividualSpawningPool(individual_size),
-                MaximizeOnesFitness()
+                name='1',
+                size=population_size,
+                replacement_rate=0.8,
+                spawning_pool=BinaryIndividualSpawningPool(individual_size),
+                fitness=MaximizeOnesFitness(),
+                selection=BestIndividual(),
+                recombination=TwoPointRecombination(),
+                p_recombination=0.8,
+                mutation=RandomGeneValue(binary_alleles),
+                p_mutation=0.1,
+                replacement=LowElitism(),
             )
         ],
-        BestIndividual(),
-        LowElitism(),
-        TwoPointCrossover(),
-        RandomGeneValue(binary_alleles),
         NoCatastrophe(),
-        0.85,
-        0.01,
     )
 
+    print(ga.populations[0][0])
     ga.run()
-    for individual in ga.populations[0]:
-        print(individual)
+    print(ga.populations[0][0])

@@ -1,161 +1,49 @@
+import inspect
+import math
+
 import abc
 import operator
 import random
 
-from pynetics.exceptions import InvalidPopulationSizeError, \
-    UnexpectedClassError, InvalidReplacementRateError
+from pynetics.catastrophe import Catastrophe
+from pynetics.exceptions import WrongValueForInterval, NotAProbabilityError
+from pynetics.individuals import SpawningPool, Individual
+from pynetics.mutation import Mutation, NoMutation
+from pynetics.recombination import Recombination, NoRecombination
+from pynetics.replacements import Replacement
+from pynetics.selections import Selection
 from pynetics.stop import StopCondition
 from pynetics.utils import check_is_instance_of, take_chances
 
 __version__ = '0.1.1'
 
 
-class GeneticAlgorithm:
-    """ Base class where the evolutionary algorithm works.
+class Population(list):
+    """ Manages a population of individuals.
 
-    More than one algorithm may exist so a base class is created for specify the
-    contract required by the other classes to work properly.
+    A population is where individuals of the same kind evolve over an
+    environment. A basic genetic algorithm consists in a single population, but
+    more complex schemes involve two or more populations evolving concurrently.
     """
 
     def __init__(
             self,
-            stop_condition,
-            populations,
-            select_method,
-            replace_method,
-            crossover_method,
-            mutate_method,
-            catastrophe_method,
-            p_crossover,
-            p_mutation,
-    ):
-        """ Initializes the genetic algorithm with the defaults.
-
-        The populations_desc param should follow certain rules in order to work
-        in the way the genetic algorithm is intended:
-        1.  The population size of each of the populations must be greater than
-            or equal to 1. If not, there will be nothing to be evolved.
-        2.  The replacement rate should be at least 1 (otherwise no individual
-            will be replaced) and, at most, the population size (i.e. a total
-            replacement also called generational scheme).
-        3.  The spawning pool must be an instance of SpawningPool class (or any
-            of their subclasses).
-        4.  The fitness method must be an instance of FitnessMethod class (or
-            any of its subclasses).
-
-        :param stop_condition: The condition to be met in order to stop the
-            genetic algorithm.
-        :param populations: The populations to be evolved.
-        :param select_method: The method to be used as selection scheme.
-        :param replace_method: The method to be used as replacement scheme.
-        :param crossover_method: The method to be used as crossover operator
-            scheme.
-        :param mutate_method: The method to be used as mutation operator scheme.
-        :param catastrophe_method: The method to be used as catastrophe
-            operation.
-        :param p_crossover: Probability that individuals, after being selected,
-            cross each other to produce offspring.
-        :param p_mutation: Probability that an individual mutates.
-        :raises InvalidPopulationSize: If the size specified in any of the
-            population_descriptions is invalid.
-        :raises InvalidReplacementRateError: If the replacement rate is lower
-            than 1 or higher than population size.
-        :raises UnexpectedClassError: If any of the input variables doesn't
-            follow the contract required (i.e. doesn't inherit from a predefined
-            class).
-        """
-        self.__stop_condition = check_is_instance_of(
-            stop_condition,
-            StopCondition
-        )
-        self.__populations = populations
-        for population in self.__populations:
-            population.genetic_algorithm = self
-        self.__select = select_method
-        self.__replace = replace_method
-        self.__cross = crossover_method
-        self.__mutate = mutate_method
-        self.__catastrophe = catastrophe_method
-        self.__p_crossover = p_crossover
-        self.__p_mutation = p_mutation
-        self.__generation = 0
-
-    def run(self):
-        """ Runs the simulation.
-
-        The process is as follows: initialize populations and, while the stop
-        condition is not met, do a new evolve step. This process relies in the
-        abstract method "step".
-        """
-        self.__initialize()
-        while not self.__stop_condition(self):
-            for population in self.populations:
-                offspring = self.__generate_offspring(population)
-                self.__replace(population, offspring)
-                self.__catastrophe(population)
-            self.__generation += 1
-
-    def __initialize(self):
-        """ Called when starting the genetic algorithm to initialize it. """
-        self.__generation = 0
-        # Create the populations and, after that, initialize its individuals
-        [population.initialize() for population in self.__populations]
-
-    def __generate_offspring(self, population):
-        """ Generates a new offspring from the population.
-
-        :param population: The population from where obtain the offspring.
-        :return: A list of individuals.
-        """
-        offspring = []
-        while len(offspring) < population.replacement_rate:
-            # Selection
-            individuals = self.__select(
-                population,
-                self.__cross.get_parents_num()
-            )
-            # Crossover
-            if take_chances(self.__p_crossover):
-                progeny = self.__cross(individuals)
-            else:
-                progeny = individuals
-            number_of_individuals_who_fit = min(
-                len(progeny),
-                population.replacement_rate - len(offspring)
-            )
-            progeny = random.sample(progeny, number_of_individuals_who_fit)
-            # Mutation
-            for individual in progeny:
-                if take_chances(self.__p_mutation):
-                    self.__mutate(individual)
-            # Add progeny to the offspring
-            offspring.extend(progeny)
-        return offspring
-
-    @property
-    def generation(self):
-        """ Returns the generation of this population. """
-        return self.__generation
-
-    @property
-    def populations(self):
-        """ Returns the populations being evolved. """
-        return self.__populations
-
-
-class Population(list):
-    """ Manages a population of individuals. """
-
-    def __init__(
-            self,
-            size,
-            replacement_rate,
-            spawning_pool,
-            fitness_method,
+            name=None,
+            size=None,
+            replacement_rate=None,
+            spawning_pool=None,
+            fitness=None,
+            selection=None,
+            recombination=None,
+            p_recombination=None,
+            mutation=None,
+            p_mutation=None,
+            replacement=None,
+            individuals=None,
     ):
         """ Initializes the population, filling it with individuals.
 
-        When the population is initialized, the fitnesses of the individuals
+        When the population is initialized, the fitness of the individuals
         generated is also calculated, implying that init_perform of every
         individual is called.
 
@@ -167,79 +55,124 @@ class Population(list):
         population[1] the next and so on, until population[-1] which is the less
         fit.
 
+        :param name: The name of this population.
         :param size: The size this population should have.
+        :param replacement_rate: The rate of individuals to be replaced in each
+            step of the algorithm. Must be a float value in the (0, 1] interval.
         :param spawning_pool: The object that generates individuals.
-        :param fitness_method: The method to evaluate individuals.
-        :raises InvalidPopulationSizeError: If population size is less than 1.
-        :raises InvalidReplacementRateError: If the replacement rate is lower
-            than 1 or higher than population size.
-        :raises UnexpectedClassError: If any of the input variables doesn't
-            follow the contract required (i.e. doesn't inherit from a predefined
-            class).
+        :param fitness: The method to evaluate individuals.
+        :param selection: The method to select individuals of the population to
+            recombine.
+        :param recombination: The method to recombine parents in order to
+            generate an offspring with characteristics of the parents. If none,
+            no recombination will be applied.
+        :param p_recombination: The odds for recombination method to be
+            performed over a set of selected individuals to generate progeny. If
+            not performed, progeny will be the parents. Must be a value between
+            0 and 1 (both included).
+        :param mutation: The method to mutate an individual. If none, no
+            mutation over the individual will be applied.
+        :param p_mutation: The odds for mutation method to be performed over a
+            progeny. It's applied once for each individual. If not performed the
+            individuals will not be modified. Must be a value between 0 and 1
+            (both included).
+        :param replacement: The method that will add and remove individuals from
+            the population given the set of old individuals (i.e. the ones on
+            the population before the evolution step) and new individuals (i.e.
+            the offspring).
+        :param individuals: The list of starting individuals. If none or if its
+            length is lower than the population size, the rest of individuals
+            will be generated randomly. If the length of initial individuals is
+            greater than the population size, a random sample of the individuals
+            is selected as members of population.
+        :raises ValueError: If no name for this population is provided.
+        :raises WrongValueForIntervalError: If any of the bounded values fall
+            out of their respective intervals.
+        :raises NotAProbabilityError: If a value was expected to be a
+            probability and it wasn't.
+        :raises UnexpectedClassError: If any of the instances provided wasn't
+            of the required class.
         """
         super().__init__()
-        if size < 1:
-            raise InvalidPopulationSizeError()
-        else:
-            self.__first_individuals = []
 
-        if not 0 < replacement_rate <= size:
-            raise InvalidReplacementRateError()
-        else:
-            self.__replacement_rate = replacement_rate
+        if not name:
+            raise ValueError('A name for population is required')
+        if size is None or size < 1:
+            raise WrongValueForInterval('size', 0, '∞', size, inc_lower=False)
+        if replacement_rate is None or not 0 < replacement_rate <= 1:
+            raise WrongValueForInterval(
+                    'replacement_rate',
+                    0,
+                    1,
+                    replacement_rate,
+                    inc_lower=False
+            )
+        if p_recombination is None or not 0 <= p_recombination <= 1:
+            raise NotAProbabilityError('p_recombination', p_recombination)
+        if p_mutation is None or not 0 <= p_mutation <= 1:
+            raise NotAProbabilityError('p_mutation', p_mutation)
 
-        self.__spawning_pool = check_is_instance_of(
-            spawning_pool,
-            SpawningPool,
+        self.name = name
+        self.size = size
+        self.replacement_rate = replacement_rate
+        self.spawning_pool = check_is_instance_of(spawning_pool, SpawningPool)
+        self.fitness = check_is_instance_of(fitness, Fitness)
+        self.selection = check_is_instance_of(selection, Selection)
+        self.recombination = check_is_instance_of(recombination, Recombination)
+        self.p_recombination = p_recombination
+        self.mutation = check_is_instance_of(mutation, Mutation)
+        self.p_mutation = p_mutation
+        self.replacement = check_is_instance_of(replacement, Replacement)
+
+        self.sorted = False
+        self.genetic_algorithm = None
+
+        # Precomputed values to speed up the things a bit
+        self.offspring_size = int(math.ceil(size * replacement_rate))
+        self.selection_size = len(
+                inspect.signature(recombination.perform).parameters
         )
-        self.__fitness_method = check_is_instance_of(
-            fitness_method,
-            FitnessMethod,
+
+        # Population is initialized with the individuals, and they are sorted by
+        # their initial fitness computation (method init_perform)
+        individuals = individuals or []
+        self.extend(random.sample(
+                individuals,
+                min(self.size, len(individuals)))
         )
-
-        self.__genetic_algorithm = None
-        self.__sorted = False
-        self.__other_populations = None
-
-        for _ in range(size):
-            individual = self.spawn()
-            individual.population = self
-            self.__first_individuals.append(individual)
-
-    def initialize(self):
-        """ Initializes the fitness of all individuals of this population.
-
-        This fitness is computed using the fitness method but in initialization
-        time.
-        """
-        # We sort the individuals by its initialization time fitness.
-        sorted_individuals = sorted(
-            [
-                (i, self.__fitness_method(i, init=True))
-                for i in self.__first_individuals
-                ],
-            key=operator.itemgetter(1),
-            reverse=True,
-        )
-        # We add them to the population and mark it as sorted.
-        [self.append(individual) for individual, _ in sorted_individuals]
-        self.__sorted = True
+        [self.append(self.spawn()) for _ in range(len(individuals), self.size)]
+        self.sort(key=lambda i: self.fitness(i, init=True))
 
     def spawn(self):
         """ Spawns a new individual.
 
-        This individual is not attached to this population.
+        This individual will have a reference to the population which created
+        it, but the population itself will not have the individual included in
+        it until "append" method is called.
 
         :return: An individual of the class of the individuals created by the
             spawning pool defined in the initialization.
         """
-        return self.__spawning_pool.create()
+        individual = self.spawning_pool.create()
+        individual.population = self
+        return individual
 
     def sort(self, *args, **kwargs):
-        """ Sorts the list of individuals by its fitness. """
-        if not self.__sorted:
-            super().sort(key=self.__fitness_method, reverse=True)
-            self.__sorted = True
+        """ Sorts the list of individuals by its fitness.
+
+        The key may be overridden, but is not recommended. It's overridden at
+        initialization time when performing the initial ordering, using
+        init_perform instead perform.
+
+        :param args: Positional parameters (inherited from list class).
+        :param kwargs: Named parameters (inherited from list class).
+        """
+        if not self.sorted:
+            super().sort(
+                    key=kwargs.get('key', self.fitness),
+                    reverse=True
+            )
+            self.sorted = True
 
     def __getitem__(self, index):
         """ Returns the individual located on this position.
@@ -264,7 +197,7 @@ class Population(list):
         :param index: The position where to insert the individual.
         :param individual: The individual to be inserted.
         """
-        self.__sorted = False
+        self.sorted = False
         self.__setitem__(index, individual)
         individual.population = self
 
@@ -279,7 +212,7 @@ class Population(list):
         :param individuals: A collection of individuals to be inserted into the
             population.
         """
-        self.__sorted = False
+        self.sorted = False
         for individual in individuals:
             individual.population = self
         super().extend(individuals)
@@ -294,68 +227,44 @@ class Population(list):
 
         :param individual: The individual to be inserted in the population
         """
-        self.__sorted = False
+        self.sorted = False
         individual.population = self
         super().append(individual)
 
-    @property
-    def sorted(self):
-        """ Returns if the individuals are sorted by fitness. """
-        return self.__sorted
+    def evolve(self):
+        """ A step of evolution is made on this population.
 
-    @property
-    def genetic_algorithm(self):
-        """ Returns the genetic algorithm to which this population belongs. """
-        return self.__genetic_algorithm
-
-    @genetic_algorithm.setter
-    def genetic_algorithm(self, genetic_algorithm):
-        """ Sets the algorithm where this population is going to be evolved. """
-        self.__genetic_algorithm = check_is_instance_of(
-            genetic_algorithm,
-            GeneticAlgorithm,
-        )
-
-    @property
-    def replacement_rate(self):
-        """ Returns the replacement rate of this population. """
-        return self.__replacement_rate
-
-    @property
-    def spawning_pool(self):
-        """ Returns the genetic algorithm to which this population belongs. """
-        return self.__spawning_pool
-
-    @property
-    def fitness_method(self):
-        """ Returns the genetic algorithm to which this population belongs. """
-        return self.__fitness_method
-
-
-class Individual(metaclass=abc.ABCMeta):
-    """ One of the possible solutions to a problem.
-
-    In a genetic algorithm, an individual is a tentative solution of a problem,
-    i.e. the environment where populations of individuals evolve.
-    """
-
-    def __init__(self):
-        """ Initializes the individual. """
-        self.population = None
-
-
-class SpawningPool(metaclass=abc.ABCMeta):
-    """ Defines the methods for creating individuals required by population. """
-
-    @abc.abstractmethod
-    def create(self):
-        """ Creates a new individual randomly.
-
-        :return: A new Individual object.
+        That means that a full cycle of select-recombine-mutate-replace is
+        performed, potentially modifying the individuals this population
+        contains.
         """
+        # First, we generate the offspring given population replacement rate.
+        offspring = []
+        while len(offspring) < self.offspring_size:
+            # Selection
+            parents = self.selection(self, self.selection_size)
+            # Recombination
+            if take_chances(self.p_recombination):
+                progeny = self.recombination(*parents)
+            else:
+                progeny = parents
+            individuals_who_fit = min(
+                    len(progeny),
+                    self.offspring_size - len(offspring)
+            )
+            progeny = random.sample(progeny, individuals_who_fit)
+            # Mutation
+            for individual in progeny:
+                if take_chances(self.p_mutation):
+                    self.mutation(individual)
+            # Add progeny to the offspring
+            offspring.extend(progeny)
+
+        # Once offspring is generated, a replace step is performed
+        self.replacement(self, offspring)
 
 
-class FitnessMethod(metaclass=abc.ABCMeta):
+class Fitness(metaclass=abc.ABCMeta):
     """ Method to estimate how adapted is the individual to the environment. """
 
     def __call__(self, individual, init=False):
@@ -389,7 +298,7 @@ class FitnessMethod(metaclass=abc.ABCMeta):
         best of other individuals of other populations (circular dependency).
         Therefore, calling other_population[0] is not an option here.
 
-        The scheme pproposed by Mitchell A. et. al. in "A Cooperative
+        The scheme proposed by Mitchell A. et. al. in "A Cooperative
         Coevolutionary Approach to Function Optimization", the initialization
         may be performed by selecting a random individual among the other
         populations instead the best. For this purpose, a random() method in

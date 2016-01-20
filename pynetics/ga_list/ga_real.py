@@ -1,6 +1,6 @@
 import random
 
-from pynetics.ga_list import Alleles, ListCrossover
+from pynetics.ga_list import Alleles, ListRecombination
 
 
 class RealIntervalAlleles(Alleles):
@@ -23,7 +23,7 @@ class RealIntervalAlleles(Alleles):
         return random.uniform(self.__a, self.__b)
 
 
-class MorphologicalCrossover(ListCrossover):
+class MorphologicalRecombination(ListRecombination):
     # TODO We need to improve this crossover.
     """Crossover that changes its behaviour depending on population diversity.
 

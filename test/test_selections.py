@@ -1,8 +1,10 @@
 from unittest import TestCase
 
-from pynetics import Population, SpawningPool, FitnessMethod
+from pynetics import Population, SpawningPool, Fitness, NoRecombination, \
+    NoMutation
 from pynetics.ga_list import ListIndividual
-from pynetics.selection import BestIndividual
+from pynetics.selections import BestIndividual
+from test.test_replacements import NoReplacement
 
 
 class DummySpawningPool(SpawningPool):
@@ -23,12 +25,31 @@ class DummySpawningPool(SpawningPool):
         return individual
 
 
-class DummyFitness(FitnessMethod):
+class DummyFitness(Fitness):
     """ A fitness just for tests. """
 
     def perform(self, individual):
         """ The more 1 an individual has in its list, the fittest it is. """
         return sum(x for x in individual)
+
+
+class DummyPopulation(Population):
+    """ A population with defaults to test replacement methods behavior. """
+
+    def __init__(self, size=None, spawning_pool=None):
+        super().__init__(
+                name='test_population',
+                size=size,
+                replacement_rate=.5,
+                p_recombination=1,
+                p_mutation=0,
+                spawning_pool=spawning_pool,
+                fitness=DummyFitness(),
+                selection=BestIndividual(),
+                recombination=NoRecombination(),
+                mutation=NoMutation(),
+                replacement=NoReplacement(),
+        )
 
 
 class BestIndividualTestCase(TestCase):
@@ -45,28 +66,24 @@ class BestIndividualTestCase(TestCase):
 
     def test_when_population_size_is_lower_than_selection_size(self):
         """ Cannot select more individuals than population size. """
-        population_size = 10
-        population = Population(
-            population_size,
-            5,
-            DummySpawningPool(self.individuals(population_size)),
-            DummyFitness(),
+        p_size = 10
+        population = DummyPopulation(
+                size=p_size,
+                spawning_pool=DummySpawningPool(
+                        self.individuals(p_size))
         )
-        population.initialize()
+
         with self.assertRaises(ValueError):
-            BestIndividual()(population, population_size * 2)
+            BestIndividual()(population, p_size * 2)
 
     def test_when_population_size_is_lower_than_selection_size_with_rep(self):
         """ Best individual is selected as many times as selection size. """
-        population_size = 10
-        selection_size = population_size * 2
-        population = Population(
-            population_size,
-            5,
-            DummySpawningPool(self.individuals(population_size)),
-            DummyFitness(),
+        p_size = 10
+        selection_size = p_size * 2
+        population = DummyPopulation(
+                size=p_size,
+                spawning_pool=DummySpawningPool(self.individuals(p_size)),
         )
-        population.initialize()
         individuals = BestIndividual(rep=True)(population, selection_size)
         self.assertEquals(len(individuals), selection_size)
         for individual in individuals:
@@ -74,16 +91,13 @@ class BestIndividualTestCase(TestCase):
 
     def test_when_population_size_is_equals_to_selection_size(self):
         """ All the population is returned. """
-        population_size = 10
-        individuals = self.individuals(population_size)
-        population = Population(
-            population_size,
-            5,
-            DummySpawningPool(individuals),
-            DummyFitness(),
+        p_size = 10
+        individuals = self.individuals(p_size)
+        population = DummyPopulation(
+                size=p_size,
+                spawning_pool=DummySpawningPool(individuals),
         )
-        population.initialize()
-        selected_individuals = BestIndividual()(population, population_size)
+        selected_individuals = BestIndividual()(population, p_size)
         for individual in individuals:
             self.assertIn(individual, selected_individuals)
         for individual in selected_individuals:
@@ -91,19 +105,16 @@ class BestIndividualTestCase(TestCase):
 
     def test_when_population_size_is_equals_to_selection_size_with_rep(self):
         """ Best individual is returned as many times as population size. """
-        population_size = 10
+        p_size = 10
         selection_size = 10
-        individuals = self.individuals(population_size)
-        population = Population(
-            population_size,
-            5,
-            DummySpawningPool(individuals),
-            DummyFitness(),
+        individuals = self.individuals(p_size)
+        population = DummyPopulation(
+                size=p_size,
+                spawning_pool=DummySpawningPool(individuals),
         )
-        population.initialize()
         selected_individuals = BestIndividual(rep=True)(
-            population,
-            selection_size
+                population,
+                selection_size
         )
         self.assertEquals(len(individuals), selection_size)
         self.assertEquals(len(individuals), len(selected_individuals))
@@ -112,15 +123,12 @@ class BestIndividualTestCase(TestCase):
 
     def test_when_population_size_is_bigger_than_selection_size(self):
         """ The best individuals are returned. """
-        population_size = 10
-        selection_size = int(population_size / 2)
-        population = Population(
-            population_size,
-            5,
-            DummySpawningPool(self.individuals(population_size)),
-            DummyFitness(),
+        p_size = 10
+        selection_size = int(p_size / 2)
+        population = DummyPopulation(
+                size=p_size,
+                spawning_pool=DummySpawningPool(self.individuals(p_size)),
         )
-        population.initialize()
         individuals = BestIndividual()(population, selection_size)
         self.assertEquals(len(individuals), selection_size)
         for i in range(len(individuals)):
@@ -128,15 +136,12 @@ class BestIndividualTestCase(TestCase):
 
     def test_when_population_size_is_bigger_than_selection_size_with_rep(self):
         """ Best individual is returned as many times as selection size. """
-        population_size = 10
-        selection_size = int(population_size / 2)
-        population = Population(
-            population_size,
-            5,
-            DummySpawningPool(self.individuals(population_size)),
-            DummyFitness(),
+        p_size = 10
+        selection_size = int(p_size / 2)
+        population = DummyPopulation(
+                size=p_size,
+                spawning_pool=DummySpawningPool(self.individuals(p_size)),
         )
-        population.initialize()
         individuals = BestIndividual(rep=True)(population, selection_size)
         self.assertEquals(len(individuals), selection_size)
         for individual in individuals:
