@@ -78,6 +78,9 @@ class ListIndividual(Individual, list):
                 [x == y for (x, y) in zip(self, individual)]
         )
 
+    def phenotype(self):
+        return self[:]
+
 
 class ListRecombination(Recombination, metaclass=abc.ABCMeta):
     """ Common behavior for crossover methods over ListIndividual instances. """

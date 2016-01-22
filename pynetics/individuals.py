@@ -12,6 +12,12 @@ class Individual:
         """ Initializes the individual. """
         self.population = None
 
+    @abc.abstractmethod
+    def phenotype(self):
+        """ The expression of this particular individual in the environment.
+
+        :return: An object representing this individual in the environment
+        """
 
 class SpawningPool(metaclass=abc.ABCMeta):
     """ Defines the methods for creating individuals required by population. """

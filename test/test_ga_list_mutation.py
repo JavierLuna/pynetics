@@ -8,7 +8,9 @@ from pynetics.ga_list import ListIndividual, SwapGenes, RandomGeneValue, \
 
 class DummyNoListIndividual(Individual):
     """ An individual that is not a subclass of ListIndividual. """
-    pass
+
+    def phenotype(self):
+        return None
 
 
 class SwapGenesTestCase(TestCase):
