@@ -1,7 +1,7 @@
 from unittest import TestCase, mock
 
-from pynetics.ga_list import ListIndividual, OnePointCrossover, \
-    RandomMaskCrossover, TwoPointCrossover
+from pynetics.ga_list import ListIndividual, OnePointRecombination, \
+    RandomMaskRecombination, TwoPointRecombination
 
 
 class ListCrossoverTestCase(TestCase):
@@ -31,13 +31,13 @@ class TestOnePointCrossover(ListCrossoverTestCase):
 
     def test_different_lengths_leads_to_an_error(self):
         """ Error when chromosomes has different length. """
-        crossover = OnePointCrossover()
+        crossover = OnePointRecombination()
         with self.assertRaises(ValueError):
             crossover([self.i1, self.i3])
 
     def test_crossover_is_performed(self):
         """ Checks that one point crossover works as expected. """
-        crossover = OnePointCrossover()
+        crossover = OnePointRecombination()
         progeny = crossover([self.i1, self.i2])
 
         self.assertEqual(len(progeny), 2)
@@ -56,13 +56,13 @@ class TestOnePointCrossover(ListCrossoverTestCase):
 class TestTwoPointCrossover(ListCrossoverTestCase):
     def test_different_lengths_leads_to_an_error(self):
         """ Error when chromosomes has different length. """
-        crossover = TwoPointCrossover()
+        crossover = TwoPointRecombination()
         with self.assertRaises(ValueError):
             crossover([self.i1, self.i3])
 
     def test_crossover_is_performed(self):
         """ Checks that one point crossover works as expected. """
-        crossover = TwoPointCrossover()
+        crossover = TwoPointRecombination()
         progeny = crossover([self.i1, self.i2])
 
         self.assertEqual(len(progeny), 2)
@@ -81,13 +81,13 @@ class TestTwoPointCrossover(ListCrossoverTestCase):
 class TestRandomMaskCrossover(ListCrossoverTestCase):
     def test_different_lengths_leads_to_an_error(self):
         """ Error when chromosomes has different length. """
-        crossover = RandomMaskCrossover()
+        crossover = RandomMaskRecombination()
         with self.assertRaises(ValueError):
             crossover([self.i1, self.i3])
 
     def test_crossover_is_performed(self):
         """ Checks that one point crossover works as expected. """
-        crossover = RandomMaskCrossover()
+        crossover = RandomMaskRecombination()
         progeny = crossover([self.i1, self.i2])
 
         self.assertEqual(len(progeny), 2)

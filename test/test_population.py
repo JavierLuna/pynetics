@@ -1,6 +1,6 @@
 from unittest import TestCase, mock
 
-from pynetics import SpawningPool, FitnessMethod, Population, \
+from pynetics import SpawningPool, Fitness, Population, \
     InvalidPopulationSizeError, GeneticAlgorithm
 from pynetics.ga_list import ListIndividual
 
@@ -23,7 +23,7 @@ class DummySpawningPool(SpawningPool):
         return individual
 
 
-class DummyFitness(FitnessMethod):
+class DummyFitness(Fitness):
     """ A fitness just for tests. """
 
     def perform(self, individual):

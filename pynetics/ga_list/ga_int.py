@@ -21,7 +21,7 @@ class IntegerIndividualSpawningPool(ga_list.ListIndividualSpawningPool):
         self.upper = upper
 
 
-class IntegerRangeCrossover(ga_list.ListCrossover):
+class IntegerRangeRecombination(ga_list.ListRecombination):
     """ Offspring is obtained by crossing individuals gene by gene.
 
     For each gene, the interval of their values is calculated. Then, the
@@ -30,21 +30,19 @@ class IntegerRangeCrossover(ga_list.ListCrossover):
     new interval. Second, the other value is calculated by taking the
     symmetrical by the center of the range.
     """
-    parents_num = 2
-
-    def perform(self, individuals):
+    def perform(self, parent1, parent2):
         """ Applies the crossover operator.
 
-        :param individuals: The individuals to cross to generate progeny.
+        :param parent1: One of the individuals from which generate the progeny.
+        :param parent2: The other.
         :return: A list of individuals.
         """
-        i1, i2 = individuals[0], individuals[1]
-        i1_lower = i1.population.spawning_pool.lower
-        i1_upper = i1.population.spawning_pool.upper
-        i2_lower = i2.population.spawning_pool.lower
-        i2_upper = i2.population.spawning_pool.upper
-        child1, child2 = i1.population.spawn(), i2.population.spawn()
-        for i, genes in enumerate(zip(i1, i2)):
+        i1_lower = parent1.population.spawning_pool.lower
+        i1_upper = parent1.population.spawning_pool.upper
+        i2_lower = parent2.population.spawning_pool.lower
+        i2_upper = parent2.population.spawning_pool.upper
+        child1, child2 = parent1.population.spawn(), parent2.population.spawn()
+        for i, genes in enumerate(zip(parent1, parent2)):
             # For each gene, we calculate the the crossover interval. If the
             # genes are equal, we take the whole possible interval
             a, b = genes
