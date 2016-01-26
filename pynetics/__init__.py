@@ -14,7 +14,7 @@ from pynetics.selections import Selection
 from pynetics.stop import StopCondition
 from pynetics.utils import check_is_instance_of, take_chances
 
-__version__ = '0.1.1'
+__version__ = '0.1.2'
 
 
 class Population(list):
