@@ -1,6 +1,6 @@
 import random
 
-from pynetics.ga_list import Alleles, ListCrossover
+from pynetics.ga_list import Alleles, ListRecombination
 
 
 class RealIntervalAlleles(Alleles):
@@ -23,7 +23,7 @@ class RealIntervalAlleles(Alleles):
         return random.uniform(self.__a, self.__b)
 
 
-class MorphologicalCrossover(ListCrossover):
+class MorphologicalRecombination(ListRecombination):
     # TODO We need to improve this crossover.
     """Crossover that changes its behaviour depending on population diversity.
 
@@ -62,22 +62,22 @@ class MorphologicalCrossover(ListCrossover):
         self.__calc_2 = d / (1 - c)
         self.__calc_3 = self.__calc_2 * -c
 
-    def perform(self, individuals):
+    def perform(self, parent1, parent2):
         """ Realizes the crossover operation.
 
-        :param individuals: The individuals to cross to generate progeny.
+        :param parent1: One of the individuals from which generate the progeny.
+        :param parent2: The other.
         :return: A list of two individuals, each one a child containing some
             characteristics derived from the parents.
         """
-        i1, i2 = individuals[0], individuals[1]
-        child1, child2 = i1.population.spawn(), i2.population.spawn()
-        for g in range(len(i1)):
-            genes_in_position_g = [i[g] for i in i1.population.individuals]
+        child1, child2 = parent1.population.spawn(), parent2.population.spawn()
+        for g in range(len(parent1)):
+            genes_in_position_g = [i[g] for i in parent1.population]
             diversity = max(genes_in_position_g) + min(genes_in_position_g)
 
             phi = self.__phi(diversity)
-            lower_bound = min(i1[g], i2[g]) + phi
-            upper_bound = max(i1[g], i2[g]) - phi
+            lower_bound = min(parent1[g], parent2[g]) + phi
+            upper_bound = max(parent1[g], parent2[g]) - phi
 
             child1[g] = random.uniform(lower_bound, upper_bound)
             child2[g] = upper_bound - (child1[g] - lower_bound)

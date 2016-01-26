@@ -1,6 +1,6 @@
 from unittest import TestCase, mock
 
-from pynetics import SpawningPool, FitnessMethod, Population, \
+from pynetics import SpawningPool, Fitness, Population, \
     InvalidPopulationSizeError, GeneticAlgorithm
 from pynetics.ga_list import ListIndividual
 
@@ -23,7 +23,7 @@ class DummySpawningPool(SpawningPool):
         return individual
 
 
-class DummyFitness(FitnessMethod):
+class DummyFitness(Fitness):
     """ A fitness just for tests. """
 
     def perform(self, individual):
@@ -35,10 +35,6 @@ class TestPopulation(TestCase):
     """ Test for populations. """
     # TODO Tests to check that the order of individuals is respected.
     # TODO Tests valid input parameters
-
-    def get_genetic_algorithm(self):
-        ga = mock.Mock(spec=GeneticAlgorithm)
-        return ga
 
     def individuals(self, n):
         individuals = []
@@ -53,7 +49,6 @@ class TestPopulation(TestCase):
         for size in (-1, 0):
             with self.assertRaises(InvalidPopulationSizeError):
                 Population(
-                    self.get_genetic_algorithm(),
                     size,
                     5,
                     DummySpawningPool(self.individuals(3)),
@@ -65,12 +60,12 @@ class TestPopulation(TestCase):
         individuals = self.individuals(10)
 
         population = Population(
-            self.get_genetic_algorithm(),
             10,
             5,
             DummySpawningPool(individuals),
             DummyFitness(),
         )
+        population.initialize()
         for i in individuals:
             self.assertIn(i, population)
 
@@ -78,7 +73,6 @@ class TestPopulation(TestCase):
         """ Calling spawn actually generates individuals. """
         individuals = self.individuals(10)
         population = Population(
-            self.get_genetic_algorithm(),
             len(individuals),
             len(individuals),
             DummySpawningPool(individuals),
@@ -93,12 +87,12 @@ class TestPopulation(TestCase):
         size = 5
         individuals = self.individuals(2 * size)
         population = Population(
-            self.get_genetic_algorithm(),
             size,
             size - 1,
             DummySpawningPool(individuals[:size]),
             DummyFitness(),
         )
+        population.initialize()
         self.assertEquals(size, len(population))
         for i in individuals[:size]:
             self.assertIn(i, population)

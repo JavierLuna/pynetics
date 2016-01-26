@@ -1,6 +1,6 @@
 import random
 
-from pynetics import UnexpectedClassError
+from .exceptions import UnexpectedClassError
 
 
 def take_chances(probability=0.5):

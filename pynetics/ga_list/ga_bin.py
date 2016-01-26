@@ -15,7 +15,7 @@ class BinaryIndividualSpawningPool(ga_list.ListIndividualSpawningPool):
         super().__init__(size, binary_alleles)
 
 
-class GeneralizedCrossover(ga_list.ListCrossover):
+class GeneralizedRecombination(ga_list.ListRecombination):
     """ Offspring is obtained by crossing individuals as they where integers.
 
     NOTE: Works only for individuals with list chromosomes of binary alleles.
