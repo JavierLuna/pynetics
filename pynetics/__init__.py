@@ -2,7 +2,6 @@ import inspect
 import math
 
 import abc
-import operator
 import random
 
 from pynetics.catastrophe import Catastrophe

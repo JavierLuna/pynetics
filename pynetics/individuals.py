@@ -12,6 +12,15 @@ class Individual:
         """ Initializes the individual. """
         self.population = None
 
+    def fitness(self):
+        """ Cumputes the fitness of this individual.
+
+        It will use the fitness method defined on its population.
+
+        :return: A fitness.
+        """
+        return self.population.fitness(self)
+
     @abc.abstractmethod
     def phenotype(self):
         """ The expression of this particular individual in the environment.
