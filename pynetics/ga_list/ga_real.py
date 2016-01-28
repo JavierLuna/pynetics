@@ -73,7 +73,7 @@ class MorphologicalRecombination(ListRecombination):
         child1, child2 = parent1.population.spawn(), parent2.population.spawn()
         for g in range(len(parent1)):
             genes_in_position_g = [i[g] for i in parent1.population]
-            diversity = max(genes_in_position_g) + min(genes_in_position_g)
+            diversity = max(genes_in_position_g) - min(genes_in_position_g)
 
             phi = self.__phi(diversity)
             lower_bound = min(parent1[g], parent2[g]) + phi
