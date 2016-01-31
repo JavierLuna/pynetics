@@ -51,7 +51,7 @@ class ListIndividualSpawningPool(SpawningPool, metaclass=abc.ABCMeta):
             spawning pool.
         :param alleles: The alleles to be used as values of the genes.
         """
-        self.__size = size
+        self.size = size
         self.alleles = alleles
 
     def create(self):
@@ -60,7 +60,7 @@ class ListIndividualSpawningPool(SpawningPool, metaclass=abc.ABCMeta):
         :return: A new Individual object.
         """
         individual = ListIndividual()
-        for _ in range(self.__size):
+        for _ in range(self.size):
             individual.append(self.alleles.get())
         return individual
 
