@@ -14,7 +14,7 @@ from pynetics.selections import Selection
 from pynetics.stop import StopCondition
 from pynetics.utils import check_is_instance_of, take_chances
 
-__version__ = '0.1.4'
+__version__ = '0.1.5'
 
 
 class Population(list):
@@ -26,19 +26,19 @@ class Population(list):
     """
 
     def __init__(
-            self,
-            name=None,
-            size=None,
-            replacement_rate=None,
-            spawning_pool=None,
-            fitness=None,
-            selection=None,
-            recombination=None,
-            p_recombination=None,
-            mutation=None,
-            p_mutation=None,
-            replacement=None,
-            individuals=None,
+        self,
+        name=None,
+        size=None,
+        replacement_rate=None,
+        spawning_pool=None,
+        fitness=None,
+        selection=None,
+        recombination=None,
+        p_recombination=None,
+        mutation=None,
+        p_mutation=None,
+        replacement=None,
+        individuals=None,
     ):
         """ Initializes the population, filling it with individuals.
 
@@ -100,11 +100,11 @@ class Population(list):
             raise WrongValueForInterval('size', 0, '∞', size, inc_lower=False)
         if replacement_rate is None or not 0 < replacement_rate <= 1:
             raise WrongValueForInterval(
-                    'replacement_rate',
-                    0,
-                    1,
-                    replacement_rate,
-                    inc_lower=False
+                'replacement_rate',
+                0,
+                1,
+                replacement_rate,
+                inc_lower=False
             )
         if p_recombination is None or not 0 <= p_recombination <= 1:
             raise NotAProbabilityError('p_recombination', p_recombination)
@@ -129,15 +129,15 @@ class Population(list):
         # Precomputed values to speed up the things a bit
         self.offspring_size = int(math.ceil(size * replacement_rate))
         self.selection_size = len(
-                inspect.signature(recombination.perform).parameters
+            inspect.signature(recombination.perform).parameters
         )
 
         # Population is initialized with the individuals, and they are sorted by
         # their initial fitness computation (method init_perform)
         individuals = individuals or []
         self.extend(random.sample(
-                individuals,
-                min(self.size, len(individuals)))
+            individuals,
+            min(self.size, len(individuals)))
         )
         [self.append(self.spawn()) for _ in range(len(individuals), self.size)]
         self.sort(key=lambda i: self.fitness(i, init=True))
@@ -168,8 +168,8 @@ class Population(list):
         """
         if not self.sorted:
             super().sort(
-                    key=kwargs.get('key', self.fitness),
-                    reverse=True
+                key=kwargs.get('key', self.fitness),
+                reverse=True
             )
             self.sorted = True
 
@@ -248,8 +248,8 @@ class Population(list):
             else:
                 progeny = parents
             individuals_who_fit = min(
-                    len(progeny),
-                    self.offspring_size - len(offspring)
+                len(progeny),
+                self.offspring_size - len(offspring)
             )
             progeny = random.sample(progeny, individuals_who_fit)
             # Mutation
@@ -310,7 +310,14 @@ class Fitness(metaclass=abc.ABCMeta):
         :return: A sortable object representing the adaptation of the individual
             to the environment.
         """
-        return self.perform(individual)
+        try:
+            return self.perform(individual)
+        except AttributeError as e:
+            # If genetic_algorithm property is not set at this moment, it's
+            # probably because a co-evolution is being implemented and that an
+            # init_perform implementation is required.
+            msg = '{}. Maybe an init_perform implementation is needed'.format(e)
+            raise AttributeError(msg)
 
     @abc.abstractmethod
     def perform(self, individual):
