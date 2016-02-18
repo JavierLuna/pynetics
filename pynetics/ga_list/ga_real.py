@@ -70,7 +70,8 @@ class MorphologicalRecombination(ListRecombination):
         :return: A list of two individuals, each one a child containing some
             characteristics derived from the parents.
         """
-        child1, child2 = parent1.population.spawn(), parent2.population.spawn()
+        child1 = parent1.population.spawning_pool.spawn()
+        child2 = parent2.population.spawning_pool.spawn()
         for g in range(len(parent1)):
             genes_in_position_g = [i[g] for i in parent1.population]
             diversity = max(genes_in_position_g) - min(genes_in_position_g)

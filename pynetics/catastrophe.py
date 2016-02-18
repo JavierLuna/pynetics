@@ -82,7 +82,7 @@ class PackingByProbability(ProbabilityBasedCatastrophe):
         visited_individuals = []
         for i in range(len(population)):
             if population[i] in visited_individuals:
-                population[i] = population.spawn()
+                population[i] = population.spawning_pool.spawn()
             visited_individuals.append(population[i])
 
 
@@ -95,4 +95,4 @@ class DoomsdayByProbability(ProbabilityBasedCatastrophe):
         :param population: The population where apply the catastrophe.
         """
         for i in range(1, len(population)):
-            population[i] = population.spawning_pool.create()
+            population[i] = population.spawning_pool.spawn()

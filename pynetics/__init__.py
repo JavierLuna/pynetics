@@ -1,11 +1,12 @@
 import inspect
 import math
+from collections import abc
 
-import abc
 import random
 
 from pynetics.catastrophe import Catastrophe
 from pynetics.exceptions import WrongValueForInterval, NotAProbabilityError
+from pynetics.fitnesses import Fitness
 from pynetics.individuals import SpawningPool, Individual
 from pynetics.mutation import Mutation, NoMutation
 from pynetics.recombination import Recombination, NoRecombination
@@ -14,10 +15,10 @@ from pynetics.selections import Selection
 from pynetics.stop import StopCondition
 from pynetics.utils import check_is_instance_of, take_chances
 
-__version__ = '0.1.4'
+__version__ = '0.2.0'
 
 
-class Population(list):
+class Population(abc.MutableSequence):
     """ Manages a population of individuals.
 
     A population is where individuals of the same kind evolve over an
@@ -26,19 +27,18 @@ class Population(list):
     """
 
     def __init__(
-            self,
-            name=None,
-            size=None,
-            replacement_rate=None,
-            spawning_pool=None,
-            fitness=None,
-            selection=None,
-            recombination=None,
-            p_recombination=None,
-            mutation=None,
-            p_mutation=None,
-            replacement=None,
-            individuals=None,
+        self,
+        name=None,
+        size=None,
+        replacement_rate=None,
+        spawning_pool=None,
+        selection=None,
+        recombination=None,
+        p_recombination=None,
+        mutation=None,
+        p_mutation=None,
+        replacement=None,
+        individuals=None,
     ):
         """ Initializes the population, filling it with individuals.
 
@@ -59,7 +59,6 @@ class Population(list):
         :param replacement_rate: The rate of individuals to be replaced in each
             step of the algorithm. Must be a float value in the (0, 1] interval.
         :param spawning_pool: The object that generates individuals.
-        :param fitness: The method to evaluate individuals.
         :param selection: The method to select individuals of the population to
             recombine.
         :param recombination: The method to recombine parents in order to
@@ -92,19 +91,17 @@ class Population(list):
         :raises UnexpectedClassError: If any of the instances provided wasn't
             of the required class.
         """
-        super().__init__()
-
         if not name:
             raise ValueError('A name for population is required')
         if size is None or size < 1:
             raise WrongValueForInterval('size', 0, '∞', size, inc_lower=False)
         if replacement_rate is None or not 0 < replacement_rate <= 1:
             raise WrongValueForInterval(
-                    'replacement_rate',
-                    0,
-                    1,
-                    replacement_rate,
-                    inc_lower=False
+                'replacement_rate',
+                0,
+                1,
+                replacement_rate,
+                inc_lower=False
             )
         if p_recombination is None or not 0 <= p_recombination <= 1:
             raise NotAProbabilityError('p_recombination', p_recombination)
@@ -115,7 +112,7 @@ class Population(list):
         self.size = size
         self.replacement_rate = replacement_rate
         self.spawning_pool = check_is_instance_of(spawning_pool, SpawningPool)
-        self.fitness = check_is_instance_of(fitness, Fitness)
+        self.spawning_pool.population = self
         self.selection = check_is_instance_of(selection, Selection)
         self.recombination = check_is_instance_of(recombination, Recombination)
         self.p_recombination = p_recombination
@@ -123,101 +120,54 @@ class Population(list):
         self.p_mutation = p_mutation
         self.replacement = check_is_instance_of(replacement, Replacement)
 
-        self.sorted = False
-        self.genetic_algorithm = None
+        self.individuals = individuals[:] if individuals else []
+        while len(self.individuals) > self.size:
+            self.individuals.remove(random.choice(self.individuals))
+        while len(self.individuals) < self.size:
+            self.individuals.append(self.spawning_pool.spawn())
 
         # Precomputed values to speed up the things a bit
         self.offspring_size = int(math.ceil(size * replacement_rate))
         self.selection_size = len(
-                inspect.signature(recombination.perform).parameters
+            inspect.signature(recombination.perform).parameters
         )
 
-        # Population is initialized with the individuals, and they are sorted by
-        # their initial fitness computation (method init_perform)
-        individuals = individuals or []
-        self.extend(random.sample(
-                individuals,
-                min(self.size, len(individuals)))
-        )
-        [self.append(self.spawn()) for _ in range(len(individuals), self.size)]
-        self.sort(key=lambda i: self.fitness(i, init=True))
+        self.sorted = False
+        self.genetic_algorithm = None
+        self.sort(init=True)
+        self.best_individuals_by_generation = [self[0]]
 
-    def spawn(self):
-        """ Spawns a new individual.
+    def __len__(self):
+        """ Returns the number fo individuals this population has. """
+        return len(self.individuals)
 
-        This individual will have a reference to the population which created
-        it, but the population itself will not have the individual included in
-        it until "append" method is called.
+    def __delitem__(self, i):
+        """ Removes the ith individual from the population.
 
-        :return: An individual of the class of the individuals created by the
-            spawning pool defined in the initialization.
-        """
-        individual = self.spawning_pool.create()
-        individual.population = self
-        return individual
+        The population will be sorted by its fitness before deleting.
 
-    def sort(self, *args, **kwargs):
-        """ Sorts the list of individuals by its fitness.
-
-        The key may be overridden, but is not recommended. It's overridden at
-        initialization time when performing the initial ordering, using
-        init_perform instead perform.
-
-        :param args: Positional parameters (inherited from list class).
-        :param kwargs: Named parameters (inherited from list class).
-        """
-        if not self.sorted:
-            super().sort(
-                    key=kwargs.get('key', self.fitness),
-                    reverse=True
-            )
-            self.sorted = True
-
-    def __getitem__(self, index):
-        """ Returns the individual located on this position.
-
-        Treat this call as if population were sorted by fitness, from the
-        fittest to the less fit.
-
-        :param index: The index of the individual to recover.
-        :return: The individual.
+        :param i: The ith individual to delete.
         """
         self.sort()
-        return super().__getitem__(index)
+        del self.individuals[i]
 
-    def __setitem__(self, index, individual):
-        """ Puts the named individual in the specified position.
+    def __setitem__(self, i, individual):
+        """ Puts the named individual in the ith position.
 
         This call will cause a new sorting of the individuals the next time an
         access is required. This means that is preferable to make all the
         inserts in the population at once instead doing interleaved readings and
         inserts.
 
-        :param index: The position where to insert the individual.
+        :param i: The position where to insert the individual.
         :param individual: The individual to be inserted.
         """
         self.sorted = False
-        self.__setitem__(index, individual)
+        self.__setitem__(i, individual)
         individual.population = self
 
-    def extend(self, individuals):
-        """ Extends the population with a collection of individuals.
-
-        This call will cause a new sorting of the individuals the next time an
-        access is required. This means that is preferable to make all the
-        inserts in the population at once instead doing interleaved readings and
-        inserts.
-
-        :param individuals: A collection of individuals to be inserted into the
-            population.
-        """
-        self.sorted = False
-        for individual in individuals:
-            individual.population = self
-        super().extend(individuals)
-
-    def append(self, individual):
-        """ Ads a new element to the end of the list of the population.
+    def insert(self, i, individual):
+        """ Ads a new element to the ith position of the population population.
 
         This call will cause a new sorting of the individuals the next time an
         access is required. This means that is preferable to make all the
@@ -228,7 +178,34 @@ class Population(list):
         """
         self.sorted = False
         individual.population = self
-        super().append(individual)
+        self.individuals.insert(i, individual)
+
+    def __getitem__(self, i):
+        """ Returns the individual located on the ith position.
+
+        The population will be sorted before accessing to the element so it's
+        correct to assume that the individuals are arranged from fittest (i = 0)
+        to least fit (n  len(populaton)).
+
+        :param i: The index of the individual to retrieve.
+        :return: The individual.
+        """
+        self.sort()
+        return self.individuals[i]
+
+    def sort(self, init=False):
+        """ Sorts this population from best to worst individual.
+
+        :param init: If enabled, the fitness to perform will be the implemented
+            in "init_perform" of fitness subclass. Is not expected to be used
+            other than in initialization time. Defaults to False.
+        """
+        if not self.sorted:
+            self.individuals.sort(
+                key=lambda i: i.fitness(init=init),
+                reverse=True
+            )
+            self.sorted = True
 
     def evolve(self):
         """ A step of evolution is made on this population.
@@ -248,8 +225,8 @@ class Population(list):
             else:
                 progeny = parents
             individuals_who_fit = min(
-                    len(progeny),
-                    self.offspring_size - len(offspring)
+                len(progeny),
+                self.offspring_size - len(offspring)
             )
             progeny = random.sample(progeny, individuals_who_fit)
             # Mutation
@@ -262,65 +239,23 @@ class Population(list):
         # Once offspring is generated, a replace step is performed
         self.replacement(self, offspring)
 
+        # The best individual is extracted and stored just in case is needed
+        self.store_best_individual()
 
-class Fitness(metaclass=abc.ABCMeta):
-    """ Method to estimate how adapted is the individual to the environment. """
+    def store_best_individual(self):
+        current_gen = self.genetic_algorithm.generation
+        best_individual = self[0]
 
-    def __call__(self, individual, init=False):
-        """ Calculates the fitness of the individual.
-
-        This method does some checks and the delegates the computation of the
-        fitness to the "perform" method.
-
-        :param individual: The individual to which estimate the adaptation.
-        :param init: If this call to fitness is at initialization time. It
-            defaults to False.
-        :return: A sortable object representing the adaptation of the individual
-            to the environment.
-        """
-        if individual is None:
-            raise ValueError('The individual cannot be None')
-        elif init:
-            return self.init_perform(individual)
+        if len(self.best_individuals_by_generation) > current_gen:
+            self.best_individuals_by_generation[current_gen] = best_individual
         else:
-            return self.perform(individual)
+            self.best_individuals_by_generation.append(best_individual)
 
-    def init_perform(self, individual):
-        """ Estimates how adapted is the individual at initialization time.
+    def best(self, g=None):
+        """ Returns the best individual for the gth.
 
-        This is useful in schemas where the fitness while initializing is
-        computed in a different way than along the generations.
-
-        Overriding this method can be tricky, specially in a co-evolutionary
-        scheme. In this stage of the algorithm (initialization) the populations
-        are not sorted, and it's position on its population cannot depend on the
-        best of other individuals of other populations (circular dependency).
-        Therefore, calling other_population[0] is not an option here.
-
-        The scheme proposed by Mitchell A. et. al. in "A Cooperative
-        Coevolutionary Approach to Function Optimization", the initialization
-        may be performed by selecting a random individual among the other
-        populations instead the best. For this purpose, a random() method in
-        Population class is provided.
-
-        The default behavior is to call method "perform" but can be overridden
-        to any other behavior if needed.
-
-        :param individual: The individual to which estimate the adaptation.
-        :return: A sortable object representing the adaptation of the individual
-            to the environment.
+        :param g: The generation from where obtain the best individual. If not
+            specified, the returned generation will be the last generation.
+        :return: The best individual for that generation.
         """
-        return self.perform(individual)
-
-    @abc.abstractmethod
-    def perform(self, individual):
-        """ Estimates how adapted is the individual.
-
-        Must return something comparable (in order to be sorted with the results
-        of the methods for other fitnesses). It's supposed that, the highest the
-        fitness value is, the fittest the individual is in the environment.
-
-        :param individual: The individual to which estimate the adaptation.
-        :return: A sortable object representing the adaptation of the individual
-            to the environment.
-        """
+        return self.best_individuals_by_generation[g or -1]

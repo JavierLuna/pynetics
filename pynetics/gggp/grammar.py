@@ -516,7 +516,10 @@ class Grammar:
         return self.__terminals
 
     def random_tree(self, initial_symbol=None):
-        """ Creates a random tree using the specified initial symbol. """
+        """ Creates a random tree using the specified initial symbol.
+
+        :param initial_symbol: The start symbol from which to generate the tree.
+        """
         # I've made this iterative alg. because the recursive one failed a lot
         productions = {p.variable: p.term for p in self.productions}
         root = initial_symbol or self.__start_symbol

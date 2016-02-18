@@ -44,7 +44,8 @@ class GeneralizedRecombination(ga_list.ListRecombination):
         bin_d = [int(x) for x in bin(d)[2:]]
 
         # Convert to chromosomes and we're finish
-        child1, child2 = i1.population.spawn(), i2.population.spawn()
+        child1 = i1.population.spawning_pool.spawn()
+        child2 = i2.population.spawning_pool.spawn()
         for i in range(len(bin_c)):
             child1[i], child2[i] = bin_c[i], bin_d[i]
         return [child1, child2, ]

@@ -1,5 +1,4 @@
 import abc
-import operator
 import random
 
 
@@ -124,7 +123,7 @@ class Tournament(Selection):
         individuals = []
         while len(individuals) < n:
             sample = random.sample(population, self.__m)
-            individual = max(sample, key=lambda i: population.fitness(i))
+            individual = max(sample, key=lambda i: i.fitness())
             if not self.rep or individual not in individuals:
                 individuals.append(individual)
         return individuals
