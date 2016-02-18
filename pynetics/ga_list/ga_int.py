@@ -30,6 +30,7 @@ class IntegerRangeRecombination(ga_list.ListRecombination):
     new interval. Second, the other value is calculated by taking the
     symmetrical by the center of the range.
     """
+
     def perform(self, parent1, parent2):
         """ Applies the crossover operator.
 
@@ -41,7 +42,10 @@ class IntegerRangeRecombination(ga_list.ListRecombination):
         i1_upper = parent1.population.spawning_pool.upper
         i2_lower = parent2.population.spawning_pool.lower
         i2_upper = parent2.population.spawning_pool.upper
-        child1, child2 = parent1.population.spawn(), parent2.population.spawn()
+
+        child1 = parent1.population.spawning_pool.spawn()
+        child2 = parent2.population.spawning_pool.spawn()
+
         for i, genes in enumerate(zip(parent1, parent2)):
             # For each gene, we calculate the the crossover interval. If the
             # genes are equal, we take the whole possible interval

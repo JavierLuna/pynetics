@@ -54,12 +54,11 @@ class GeneticAlgorithm:
             StopCondition
         )
         self.populations = populations
+        for population in self.populations:
+            population.genetic_algorithm = self
         self.listeners = defaultdict(list)
         self.catastrophe = check_is_instance_of(catastrophe, Catastrophe)
         self.generation = 0
-
-        for population in self.populations:
-            population.genetic_algorithm = self
 
     def run(self):
         """ Runs the simulation.
@@ -93,7 +92,7 @@ class GeneticAlgorithm:
 
         :return: A dictionary with the best individual of each population.
         """
-        return {p.name: p[0] for p in self.populations}
+        return {p.name: p.best() for p in self.populations}
 
 
 class SimpleGA(GeneticAlgorithm):
@@ -109,7 +108,6 @@ class SimpleGA(GeneticAlgorithm):
         size,
         replacement_rate,
         spawning_pool,
-        fitness,
         selection,
         replacement,
         recombination,
@@ -125,7 +123,6 @@ class SimpleGA(GeneticAlgorithm):
         :param replacement_rate: The rate of individuals to be replaced in each
             step of the algorithm. Must be a float value in the (0, 1] interval.
         :param spawning_pool: The object that generates individuals.
-        :param fitness: The method to evaluate individuals.
         :param selection: The method to select individuals of the population to
             recombine.
         :param replacement: The method that will add and remove individuals from
@@ -164,7 +161,6 @@ class SimpleGA(GeneticAlgorithm):
                     size=size,
                     replacement_rate=replacement_rate,
                     spawning_pool=spawning_pool,
-                    fitness=fitness,
                     selection=selection,
                     recombination=recombination,
                     mutation=mutation,

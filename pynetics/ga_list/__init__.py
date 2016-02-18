@@ -136,7 +136,8 @@ class OnePointRecombination(ListRecombination):
         :return: A list of two individuals, each a child containing some
             characteristics from their parents.
         """
-        child1, child2 = parent1.population.spawn(), parent1.population.spawn()
+        child1 = parent1.population.spawning_pool.spawn()
+        child2 = parent2.population.spawning_pool.spawn()
 
         p = random.randint(1, len(parent1) - 1)
         for i in range(len(parent1)):
@@ -181,7 +182,8 @@ class TwoPointRecombination(ListRecombination):
         :return: A list of two individuals, each a child containing some
             characteristics from their parents.
         """
-        child1, child2 = parent1.population.spawn(), parent2.population.spawn()
+        child1 = parent1.population.spawning_pool.spawn()
+        child2 = parent2.population.spawning_pool.spawn()
 
         pivots = random.sample(range(len(parent1) - 1), 2)
         p, q = min(pivots[0], pivots[1]), max(pivots[0], pivots[1])
@@ -200,7 +202,7 @@ class RandomMaskRecombination(ListRecombination):
     type ListIndividual (or subclasses).
     """
 
-    def perform(self, individuals):
+    def perform(self, parent1, parent2):
         """ Offspring is obtained generating a random mask.
 
         This mask determines which genes of each of the progenitors are used on
@@ -211,18 +213,19 @@ class RandomMaskRecombination(ListRecombination):
         -----------
         children    : aabaabba, bbabbaab
 
-        :param individuals: The individuals to cross to generate progeny.
+        :param parent1: One of the individuals from which generate the progeny.
+        :param parent2: The other.
         :return: A list of two individuals, each a child containing some
             characteristics from their parents.
         """
-        i1, i2 = individuals[0], individuals[1]
-        child1, child2 = i1.population.spawn(), i1.population.spawn()
+        child1 = parent1.population.spawning_pool.spawn()
+        child2 = parent2.population.spawning_pool.spawn()
 
-        for i in range(len(i1)):
+        for i in range(len(parent1)):
             if take_chances(.5):
-                child1[i], child2[i] = i1[i], i2[i]
+                child1[i], child2[i] = parent1[i], parent2[i]
             else:
-                child1[i], child2[i] = i2[i], i1[i]
+                child1[i], child2[i] = parent2[i], parent1[i]
         return [child1, child2, ]
 
 
