@@ -12,7 +12,7 @@ class Alleles(metaclass=abc.ABCMeta):
     """ The alleles are all the possible values a gene can take. """
 
     @abc.abstractmethod
-    def get(self):
+    def get(self, *args, **kwargs):
         """ Returns a random value of all the possible existent values. """
 
 
