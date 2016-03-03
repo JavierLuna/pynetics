@@ -1,5 +1,7 @@
 import inspect
 import math
+from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
+
 from collections import abc
 
 import random
@@ -207,7 +209,7 @@ class Population(abc.MutableSequence):
             )
             self.sorted = True
 
-    def evolve(self):
+    def evolve_old(self):
         """ A step of evolution is made on this population.
 
         That means that a full cycle of select-recombine-mutate-replace is
@@ -235,6 +237,47 @@ class Population(abc.MutableSequence):
                     self.mutation(individual)
             # Add progeny to the offspring
             offspring.extend(progeny)
+
+        # Once offspring is generated, a replace step is performed
+        self.replacement(self, offspring)
+
+        # The best individual is extracted and stored just in case is needed
+        self.store_best_individual()
+
+    def evolve(self):
+        """ A step of evolution is made on this population.
+
+        That means that a full cycle of select-recombine-mutate-replace is
+        performed, potentially modifying the individuals this population
+        contains.
+        """
+        num_selections = int(self.offspring_size / self.selection_size) + 1
+        # Selection of each tuple of parents
+        with ProcessPoolExecutor(max_workers=1) as executor:
+            futures = [
+                executor.submit(self.selection, self, self.selection_size)
+                for _ in range(num_selections)
+            ]
+            selected_parents = (f.result() for f in futures)
+
+        # Offspring generation
+        offspring = []
+        for parents in selected_parents:
+            # Recombination
+            if take_chances(self.p_recombination):
+                progeny = self.recombination(*parents)
+            else:
+                progeny = parents
+            # Mutation
+            for i, individual in enumerate(progeny):
+                if take_chances(self.p_mutation):
+                    progeny[i] = self.mutation(individual)
+            # The new offspring is generated
+            offspring.extend(progeny)
+
+        # We remove random individuals in case the list is bigger than expected
+        if len(offspring) > self.offspring_size:
+            offspring = random.sample(offspring, self.offspring_size)
 
         # Once offspring is generated, a replace step is performed
         self.replacement(self, offspring)

@@ -6,13 +6,15 @@ from pynetics import ga_list
 class BinaryIndividualSpawningPool(ga_list.ListIndividualSpawningPool):
     """ Defines the methods for creating binary individuals. """
 
-    def __init__(self, size):
+    def __init__(self, size, fitness):
         """ Initializes this spawning pool for generating list individuals.
 
         :param size: The size of the individuals to be created from this
             spawning pool.
+        :param fitness: The fitness to use to evaluate the individuals generated
+            by this SpawningPool instance.
         """
-        super().__init__(size, binary_alleles)
+        super().__init__(size, binary_alleles, fitness)
 
 
 class GeneralizedRecombination(ga_list.ListRecombination):

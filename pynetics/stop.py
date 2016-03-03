@@ -70,5 +70,5 @@ class FitnessBound(StopCondition):
         :return: True if criteria is met, false otherwise.
         """
         fitnesses = [p[0].fitness() for p in genetic_algorithm.populations]
-        criteria = [fitness > self.fitness_bound for fitness in fitnesses]
+        criteria = [fitness >= self.fitness_bound for fitness in fitnesses]
         return all(criteria) if self.all_populations else any(criteria)

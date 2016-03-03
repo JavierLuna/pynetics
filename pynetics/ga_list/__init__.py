@@ -44,13 +44,16 @@ class FiniteSetAlleles(Alleles):
 class ListIndividualSpawningPool(SpawningPool, metaclass=abc.ABCMeta):
     """ Defines the methods for creating individuals required by population. """
 
-    def __init__(self, size, alleles):
+    def __init__(self, size, alleles, fitness):
         """ Initializes this spawning pool for generating list individuals.
 
         :param size: The size of the individuals to be created from this
             spawning pool.
         :param alleles: The alleles to be used as values of the genes.
+        :param fitness: The fitness to use to evaluate the individuals generated
+            by this SpawningPool instance.
         """
+        super().__init__(fitness=fitness)
         self.size = size
         self.alleles = alleles
 
