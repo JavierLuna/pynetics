@@ -459,7 +459,7 @@ class Grammar:
             raise ValueError('Parameter "production_rules" ' + error_msg)
 
         # Everything is ok at this point, so let's shrink the productions
-        all_prods = collections.defaultdict(lambda: [])
+        all_prods = collections.defaultdict(list)
         for production in productions:
             all_prods[production.variable].append(production.term)
         new_productions = []

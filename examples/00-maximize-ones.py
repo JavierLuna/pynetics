@@ -11,7 +11,7 @@ from pynetics.replacements import HighElitism
 from pynetics.selections import Tournament
 from pynetics.stop import FitnessBound
 
-population_size = 20000
+population_size = 200
 tournament = 3
 replacement_rate = 0.99
 individual_size = 100

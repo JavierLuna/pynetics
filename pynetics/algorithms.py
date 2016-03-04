@@ -1,3 +1,5 @@
+from typing import Callable
+
 from collections import defaultdict
 
 from pynetics import Population
@@ -22,7 +24,7 @@ class GeneticAlgorithm:
 
     def __init__(
         self,
-        stop_condition,
+        stop_condition: Callable[['GeneticAlgorithm'], bool],
         populations,
         catastrophe,
     ):

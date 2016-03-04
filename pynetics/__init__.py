@@ -2,8 +2,11 @@ import inspect
 import math
 from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
 
+import operator
 from collections import abc
 
+import copyreg
+import types
 import random
 
 from pynetics.catastrophe import Catastrophe
@@ -17,7 +20,7 @@ from pynetics.selections import Selection
 from pynetics.stop import StopCondition
 from pynetics.utils import check_is_instance_of, take_chances
 
-__version__ = '0.2.0'
+__version__ = '0.3.0'
 
 
 class Population(abc.MutableSequence):
@@ -204,12 +207,12 @@ class Population(abc.MutableSequence):
         """
         if not self.sorted:
             self.individuals.sort(
-                key=lambda i: i.fitness(init=init),
+                key=operator.methodcaller('fitness', init=init),
                 reverse=True
             )
             self.sorted = True
 
-    def evolve_old(self):
+    def evolve(self):
         """ A step of evolution is made on this population.
 
         That means that a full cycle of select-recombine-mutate-replace is
@@ -244,7 +247,7 @@ class Population(abc.MutableSequence):
         # The best individual is extracted and stored just in case is needed
         self.store_best_individual()
 
-    def evolve(self):
+    def evolve_mp_no_funciona(self):
         """ A step of evolution is made on this population.
 
         That means that a full cycle of select-recombine-mutate-replace is
@@ -254,10 +257,15 @@ class Population(abc.MutableSequence):
         num_selections = int(self.offspring_size / self.selection_size) + 1
         # Selection of each tuple of parents
         with ProcessPoolExecutor(max_workers=1) as executor:
-            futures = [
-                executor.submit(self.selection, self, self.selection_size)
-                for _ in range(num_selections)
-            ]
+            futures = []
+            for _ in range(num_selections):
+                future = executor.submit(
+                    mp_population_select,
+                    self,
+                    self,
+                    self.selection_size
+                )
+                futures.append(future)
             selected_parents = (f.result() for f in futures)
 
         # Offspring generation
@@ -302,3 +310,10 @@ class Population(abc.MutableSequence):
         :return: The best individual for that generation.
         """
         return self.best_individuals_by_generation[g or -1]
+
+    def selection(self):
+        raise NotImplementedError()
+
+
+def mp_population_select(arg, **kwarg):
+    return Population.selection(*arg, **kwarg)

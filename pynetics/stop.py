@@ -1,5 +1,7 @@
 import abc
 
+from pynetics.algorithms import GeneticAlgorithm
+
 
 class StopCondition(metaclass=abc.ABCMeta):
     """ A condition to be met in order to stop the algorithm.
@@ -10,7 +12,7 @@ class StopCondition(metaclass=abc.ABCMeta):
     """
 
     @abc.abstractmethod
-    def __call__(self, genetic_algorithm):
+    def __call__(self, genetic_algorithm: GeneticAlgorithm) -> bool:
         """ Checks if this stop condition is met.
 
         :param genetic_algorithm: The genetic algorithm where this stop
@@ -22,14 +24,14 @@ class StopCondition(metaclass=abc.ABCMeta):
 class StepsNumStopCondition(StopCondition):
     """ If the genetic algorithm has made enough iterations. """
 
-    def __init__(self, steps):
+    def __init__(self, steps: int):
         """ Initializes this function with the number of iterations.
 
         :param steps: An integer value.
         """
         self.steps = steps
 
-    def __call__(self, genetic_algorithm):
+    def __call__(self, genetic_algorithm: GeneticAlgorithm) -> bool:
         """ Checks if this stop criteria is met.
 
         It will look at the generation of the genetic algorithm. It's expected
@@ -46,7 +48,7 @@ class StepsNumStopCondition(StopCondition):
 class FitnessBound(StopCondition):
     """ If the genetic algorithm obtained a fine enough individual. """
 
-    def __init__(self, fitness_bound, all_populations=False):
+    def __init__(self, fitness_bound: float, all_populations: bool = False):
         """ Initializes this function with the upper bound for the fitness.
 
         :param fitness_bound: An fitness value.
@@ -58,7 +60,7 @@ class FitnessBound(StopCondition):
         self.fitness_bound = fitness_bound
         self.all_populations = all_populations
 
-    def __call__(self, genetic_algorithm):
+    def __call__(self, genetic_algorithm: GeneticAlgorithm) -> bool:
         """ Checks if this stop criteria is met.
 
         It will look at the generation of the genetic algorithm. It's expected
