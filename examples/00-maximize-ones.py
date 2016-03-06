@@ -3,10 +3,8 @@ import time
 from pynetics import Fitness, Population
 from pynetics.algorithms import MultiplePopulationsGeneticAlgorithm
 from pynetics.catastrophe import NoCatastrophe
-from pynetics.ga_list import RandomMaskRecombination, OnePointRecombination, \
-    RandomGeneValue, \
-    TwoPointRecombination
-from pynetics.ga_list.ga_bin import BinaryIndividualSpawningPool, binary_alleles
+from pynetics.ga_bin import BinaryIndividualSpawningPool, binary_alleles
+from pynetics.ga_list import RandomMaskRecombination, RandomGeneValue
 from pynetics.replacements import HighElitism
 from pynetics.selections import Tournament
 from pynetics.stop import FitnessBound

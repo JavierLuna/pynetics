@@ -343,7 +343,7 @@ class Population(abc.MutableSequence):
         # Precomputed values to help to speed up the things a bit
         self.offspring_size = int(math.ceil(size * replacement_rate))
         self.selection_size = len(
-            inspect.signature(recombination.perform).parameters
+            inspect.signature(recombination.__call__).parameters
         )
 
         self.sorted = False
@@ -604,24 +604,13 @@ class Fitness(metaclass=ABCMeta):
 class Mutation(metaclass=ABCMeta):
     """ Defines the behaviour of a genetic algorithm mutation operator. """
 
+    @abstractmethod
     def __call__(self, individual: Individual) -> Individual:
         """ Applies the mutation method to the individual.
 
         :param individual: an individual to mutate.
-        :returns: A clone of the individual with a mutation.
-        """
-        return self.perform(individual)
-
-    @abstractmethod
-    def perform(self, individual: Individual) -> Individual:
-        """ Implementation of the mutation operation.
-
-        The mutation implementation must be aware of the implementation type.
-        Given that not all the implementations are the same, not all the
-        mutation operations may work.
-
-        :param individual: The individual to mutate.
-        :returns: A new mutated individual.
+        :return: A cloned individual of the one passed as parameter but with a
+            slightly (or not, X-MEN!!!!) mutation.
         """
 
 
@@ -633,28 +622,14 @@ class Recombination(metaclass=ABCMeta):
     aspects derived from their parents.
     """
 
-    # TODO No sé yo si el  *args: Individual estará correcto.
-    def __call__(self, *args: Individual) -> Individual:
-        """ Applies the recombine method to a sequence of individuals.
-
-        :param args: A list of one or more Individual instances to use as
-            parents in the recombination.
-        :returns: A sequence of individuals with characteristics of the parents.
-        """
-        return self.perform(*args)
-
+    # TODO Don't know if *args: Individual is correct.
     @abstractmethod
-    def perform(self, *args: Individual):
+    def __call__(self, *args: Individual) -> Sequence[Individual]:
         """ Implementation of the recombine method.
 
-        The method will always receive a list of Individual instances, and the
-        implementation must be aware of the individual types because given that
-        not all implementations are the same, not all the crossover operations
-        may work.
-
-        :param args: A list of one or more Individual instances to use as
-            parents in the recombination.
-        :returns: A sequence of individuals with characteristics of the parents.
+        :param args: One or more Individual instances to use as parents in the
+            recombination.
+        :return: A sequence of individuals with characteristics of the parents.
         """
 
 
