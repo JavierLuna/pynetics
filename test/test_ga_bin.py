@@ -31,7 +31,7 @@ class BinaryIndividualSpawningPoolTestCase(TestCase):
         """ Checks if it's pickeable by writing it into a temporary file. """
         with TemporaryFile() as f:
             pickle.dump(BinaryIndividualSpawningPool(
-                binary_alleles,
+                10,
                 utils.DummyFitness()
             ), f)
 
