@@ -3,57 +3,6 @@ import operator
 import random
 
 
-class Selection(metaclass=abc.ABCMeta):
-    """ Selection of the fittest individuals among the population.
-
-    The selection method is defined as a class. However, it is enough to provide
-    as a selection method a function that receives a village and a number of
-    individuals, and returns a sample of individuals of that size from the given
-    population.
-    """
-
-    def __init__(self, rep=False):
-        """ Initializes this selector.
-
-        :param rep: If repetition of individuals is allowed. If true, there are
-            chances of the same individual be selected again. Defaults to False.
-        """
-        self.__rep = rep
-
-    def __call__(self, population, n):
-        """ Makes some checks to the configuration before delegating selection.
-
-        After checking the parameters, the selection is performed by perform
-        method.
-
-        :param population: The population from which select the individuals.
-        :param n: The number of individuals to return.
-        :return: A list of individuals.
-        :raises ValueError: If length of the population is smaller than the
-            number of individuals to select and the repetition parameter is set
-            to False (i.e. the same Individual cannot be selected twice or more
-            times).
-        """
-        if not self.rep and len(population) < n:
-            raise ValueError()
-        else:
-            return self.perform(population, n)
-
-    @abc.abstractmethod
-    def perform(self, population, n):
-        """ It makes the selection according to the subclass implementation.
-
-        :param population: The population from which select the individuals.
-        :param n: The number of individuals to return.
-        :return: A list of n individuals.
-        """
-
-    @property
-    def rep(self):
-        """ Returns if the same individual can be selected repeatedly. """
-        return self.__rep
-
-
 class BestIndividual(Selection):
     """ Selects the best individuals among the population. """
 

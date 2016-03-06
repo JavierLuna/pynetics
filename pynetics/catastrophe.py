@@ -4,46 +4,6 @@ import abc
 from .utils import take_chances
 
 
-class Catastrophe(metaclass=abc.ABCMeta):
-    """ Defines the behaviour of a genetic algorithm catastrophe operator.
-
-    It's expected for this operator to keep track of the ga and know when to act
-    since it will be called every step of the algorithm after replacement
-    operation.
-    """
-
-    def __call__(self, population):
-        """ Tries to apply the catastrophic operator to the population.
-
-        This method does some checks and the delegates the application of the
-        catastrophic operator to the "perform" method.
-
-        :param population: The population where apply the catastrophic method.
-        """
-        if population is None:
-            raise ValueError('The population cannot be None')
-        else:
-            return self.perform(population)
-
-    @abc.abstractmethod
-    def perform(self, population):
-        """ Implementation of the catastrophe operation.
-
-        :param population: the population which may suffer the catastrophe
-        """
-
-
-class NoCatastrophe(Catastrophe):
-    """ A catastrophe method where nothing happens. """
-
-    def perform(self, population):
-        """ It's a wonderful world and nothing happens.
-
-        :param population: The poppulation where nothing happens. Ever.
-        """
-        pass
-
-
 class ProbabilityBasedCatastrophe(Catastrophe, metaclass=abc.ABCMeta):
     """ Base class for some bundled probability based catastrophe methods.
 

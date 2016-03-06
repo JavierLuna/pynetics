@@ -1,24 +1,6 @@
 import abc
 
-from pynetics.algorithms import GeneticAlgorithm
-
-
-class StopCondition(metaclass=abc.ABCMeta):
-    """ A condition to be met in order to stop the algorithm.
-
-    Although the stop condition is defined as a class, it's enough to provide a
-    function that is able to discern whether the time has come to stop (True or
-    False) receiving as parameter the population.
-    """
-
-    @abc.abstractmethod
-    def __call__(self, genetic_algorithm: GeneticAlgorithm) -> bool:
-        """ Checks if this stop condition is met.
-
-        :param genetic_algorithm: The genetic algorithm where this stop
-            condition belongs.
-        :return: True if criteria is met, false otherwise.
-        """
+from pynetics.algorithms import MultiplePopulationsGeneticAlgorithm
 
 
 class StepsNumStopCondition(StopCondition):
@@ -31,7 +13,7 @@ class StepsNumStopCondition(StopCondition):
         """
         self.steps = steps
 
-    def __call__(self, genetic_algorithm: GeneticAlgorithm) -> bool:
+    def __call__(self, genetic_algorithm: MultiplePopulationsGeneticAlgorithm) -> bool:
         """ Checks if this stop criteria is met.
 
         It will look at the generation of the genetic algorithm. It's expected
@@ -60,7 +42,7 @@ class FitnessBound(StopCondition):
         self.fitness_bound = fitness_bound
         self.all_populations = all_populations
 
-    def __call__(self, genetic_algorithm: GeneticAlgorithm) -> bool:
+    def __call__(self, genetic_algorithm: MultiplePopulationsGeneticAlgorithm) -> bool:
         """ Checks if this stop criteria is met.
 
         It will look at the generation of the genetic algorithm. It's expected

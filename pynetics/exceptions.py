@@ -1,30 +1,31 @@
-class GeneticAlgorithmError(Exception):
-    # TODO TBD
+class PyneticsError(Exception):
+    """ Base class for the errors raised in pynetics library. """
     pass
 
 
-class UnexpectedClassError(GeneticAlgorithmError):
+class InvalidSize(PyneticsError):
     """ Raised when an instance is not of the expected class. """
 
-    def __init__(self, expected_class):
+    def __init__(self, expected, current):
         """ Initializes the exception.
 
-        :param expected_class: The expected class for that instance.
+        :param expected: The expected size.
+        :param current: The current size.
         """
-        super().__init__('Expected class {}'.format(expected_class))
+        super().__init__('Expected {} but got {}'.format(expected, current))
 
 
 class WrongValueForInterval(ValueError):
     """ When a value does not belong to an interval. """
 
     def __init__(
-            self,
-            var_name,
-            lower,
-            upper,
-            value,
-            inc_lower=True,
-            inc_upper=True,
+        self,
+        var_name,
+        lower,
+        upper,
+        value,
+        inc_lower=True,
+        inc_upper=True,
     ):
         """ Initializes the exception.
 
@@ -42,12 +43,12 @@ class WrongValueForInterval(ValueError):
         self.inc_lower = inc_lower
         self.inc_upper = inc_upper
         msg = 'Expected {} ∈ {}{}, {}{} but got {}'.format(
-                var_name,
-                '[' if inc_lower else '(',
-                self.lower,
-                self.upper,
-                ']' if inc_upper else ')',
-                self.value,
+            var_name,
+            '[' if inc_lower else '(',
+            self.lower,
+            self.upper,
+            ']' if inc_upper else ')',
+            self.value,
         )
         super().__init__(msg)
 

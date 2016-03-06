@@ -1,7 +1,7 @@
 import time
 
 from pynetics import Fitness, Population
-from pynetics.algorithms import GeneticAlgorithm
+from pynetics.algorithms import MultiplePopulationsGeneticAlgorithm
 from pynetics.catastrophe import NoCatastrophe
 from pynetics.ga_list import RandomMaskRecombination, OnePointRecombination, \
     RandomGeneValue, \
@@ -25,7 +25,7 @@ class MaximizeOnesFitness(Fitness):
 
 
 if __name__ == '__main__':
-    ga = GeneticAlgorithm(
+    ga = MultiplePopulationsGeneticAlgorithm(
         FitnessBound(1),
         [
             Population(
@@ -75,7 +75,7 @@ if __name__ == '__main__':
 
 
     clock = Clock()
-    ga.listeners[GeneticAlgorithm.MSG_STEP_STARTED].append(lambda g: clock.start())
-    ga.listeners[GeneticAlgorithm.MSG_STEP_FINISHED].append(lambda g: clock.end())
+    ga.listeners[MultiplePopulationsGeneticAlgorithm.MSG_STEP_STARTED].append(lambda g: clock.start())
+    ga.listeners[MultiplePopulationsGeneticAlgorithm.MSG_STEP_FINISHED].append(lambda g: clock.end())
     ga.run()
     #print([' ' if x == 0 else '#' for x in ga.populations[0].best()])

@@ -9,7 +9,7 @@ from pynetics.stop import StopCondition
 from pynetics.utils import check_is_instance_of
 
 
-class GeneticAlgorithm:
+class MultiplePopulationsGeneticAlgorithm:
     """ Base class where the evolutionary algorithm works.
 
     More than one algorithm may exist so a base class is created for specify the
@@ -24,7 +24,7 @@ class GeneticAlgorithm:
 
     def __init__(
         self,
-        stop_condition: Callable[['GeneticAlgorithm'], bool],
+        stop_condition: Callable[['MultiplePopulationsGeneticAlgorithm'], bool],
         populations,
         catastrophe,
     ):
@@ -97,7 +97,7 @@ class GeneticAlgorithm:
         return {p.name: p.best() for p in self.populations}
 
 
-class SimpleGA(GeneticAlgorithm):
+class SimpleGA(MultiplePopulationsGeneticAlgorithm):
     """ Simple implementation of a GeneticAlgorithm
 
     This subclass abstracts all the behavior of the evolution over several
