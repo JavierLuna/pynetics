@@ -45,7 +45,7 @@ if __name__ == '__main__':
         NoCatastrophe(),
     )
 
-    #print([' ' if x == 0 else '#' for x in ga.populations[0].best()])
+    # print([' ' if x == 0 else '#' for x in ga.populations[0].best()])
     '''
     ga.listeners[GeneticAlgorithm.MSG_STEP_FINISHED].append(
         lambda g: print(
@@ -73,7 +73,9 @@ if __name__ == '__main__':
 
 
     clock = Clock()
-    ga.listeners[MultiplePopulationsGeneticAlgorithm.MSG_STEP_STARTED].append(lambda g: clock.start())
-    ga.listeners[MultiplePopulationsGeneticAlgorithm.MSG_STEP_FINISHED].append(lambda g: clock.end())
+    ga.listeners[MultiplePopulationsGeneticAlgorithm.MSG_STEP_STARTED].append(
+        lambda g: clock.start())
+    ga.listeners[MultiplePopulationsGeneticAlgorithm.MSG_STEP_FINISHED].append(
+        lambda g: clock.end())
     ga.run()
-    #print([' ' if x == 0 else '#' for x in ga.populations[0].best()])
+    # print([' ' if x == 0 else '#' for x in ga.populations[0].best()])

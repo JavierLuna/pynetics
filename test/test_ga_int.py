@@ -3,14 +3,8 @@ from unittest import TestCase
 
 from tempfile import TemporaryFile
 
-from pynetics import PyneticsError
-from pynetics.ga_bin import binary_alleles, BinaryIndividualSpawningPool, \
-    GeneralizedRecombination
 from pynetics.ga_int import IntegerIndividualSpawningPool, \
     IntegerRangeRecombination
-from pynetics.ga_list import FiniteSetAlleles, ListIndividualSpawningPool, \
-    ListIndividual, FixedLengthListRecombination, OnePointRecombination, \
-    TwoPointRecombination, RandomMaskRecombination, SwapGenes, RandomGeneValue
 from test import utils
 
 

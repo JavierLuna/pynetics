@@ -2,6 +2,7 @@ import abc
 import collections
 import operator
 import random
+
 from pynetics import take_chances
 
 

@@ -1,10 +1,10 @@
 from typing import Callable
 
 from collections import defaultdict
+from pynetics.mutation import NoMutation
 
 from pynetics import Population
 from pynetics.catastrophe import Catastrophe, NoCatastrophe
-from pynetics.mutation import NoMutation
 from pynetics.stop import StopCondition
 from pynetics.utils import check_is_instance_of
 

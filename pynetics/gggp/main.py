@@ -1,4 +1,5 @@
 from pprint import pprint
+
 from pynetics.gggp import grammar
 
 awesome_grammar = grammar.Grammar(

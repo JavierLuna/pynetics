@@ -1,4 +1,4 @@
-from pynetics import StopCondition, GeneticAlgorithm
+from pynetics import StopCondition
 
 
 class StepsNum(StopCondition):

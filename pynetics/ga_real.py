@@ -1,6 +1,6 @@
 import random
 
-from pynetics.ga_list import Alleles, ListRecombination
+from pynetics.ga_list import Alleles, FixedLengthListRecombination
 
 
 class RealIntervalAlleles(Alleles):
@@ -15,16 +15,16 @@ class RealIntervalAlleles(Alleles):
         :param a: One end of the interval.
         :param b: Other end of the interval.
         """
-        self.__a = min(a, b)
-        self.__b = max(a, b)
+        self.a = min(a, b)
+        self.b = max(a, b)
 
     def get(self) -> float:
         """ A random value is selected uniformly over the interval. """
-        return random.uniform(self.__a, self.__b)
+        return random.uniform(self.a, self.b)
 
 
-class MorphologicalRecombination(ListRecombination):
-    # TODO We need to improve this crossover.
+class MorphologicalRecombination(FixedLengthListRecombination):
+    # TODO We need to improve this crossover (maybe a diversity for population?)
     """Crossover that changes its behaviour depending on population diversity.
 
     The idea is that, for each dimension of the vector (the chromosome of the
@@ -39,7 +39,6 @@ class MorphologicalRecombination(ListRecombination):
     alleles.
     NOTE: The value of each gene must be normalized to the interval [0, 1].
     """
-    parents_num = 2
 
     def __init__(self, a=-.001, b=-.133, c=.54, d=.226):
         # TODO TBD Search the reference to the papers .
@@ -62,7 +61,7 @@ class MorphologicalRecombination(ListRecombination):
         self.__calc_2 = d / (1 - c)
         self.__calc_3 = self.__calc_2 * -c
 
-    def perform(self, parent1, parent2):
+    def __call__(self, parent1, parent2):
         """ Realizes the crossover operation.
 
         :param parent1: One of the individuals from which generate the progeny.
@@ -70,8 +69,7 @@ class MorphologicalRecombination(ListRecombination):
         :return: A list of two individuals, each one a child containing some
             characteristics derived from the parents.
         """
-        child1 = parent1.population.spawning_pool.spawn()
-        child2 = parent2.population.spawning_pool.spawn()
+        child1, child2 = super().__call__(parent1, parent2)
         for g in range(len(parent1)):
             genes_in_position_g = [i[g] for i in parent1.population]
             diversity = max(genes_in_position_g) - min(genes_in_position_g)
@@ -82,7 +80,7 @@ class MorphologicalRecombination(ListRecombination):
 
             child1[g] = random.uniform(lower_bound, upper_bound)
             child2[g] = upper_bound - (child1[g] - lower_bound)
-        return [child1, child2, ]
+        return child1, child2
 
     def __phi(self, x):
         """ Value in the interval from where to obtain the values grow or shrink
