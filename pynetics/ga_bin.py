@@ -1,9 +1,11 @@
 import random
 
 from pynetics import ga_list
+from pynetics.ga_list import ListIndividualSpawningPool, \
+    FixedLengthListRecombination
 
 
-class BinaryIndividualSpawningPool(ga_list.ListIndividualSpawningPool):
+class BinaryIndividualSpawningPool(ListIndividualSpawningPool):
     """ Defines the methods for creating binary individuals. """
 
     def __init__(self, size, fitness):
@@ -17,25 +19,25 @@ class BinaryIndividualSpawningPool(ga_list.ListIndividualSpawningPool):
         super().__init__(size, binary_alleles, fitness)
 
 
-class GeneralizedRecombination(ga_list.ListRecombination):
+class GeneralizedRecombination(FixedLengthListRecombination):
     """ Offspring is obtained by crossing individuals as they where integers.
 
     NOTE: Works only for individuals with list chromosomes of binary alleles.
     Ok, may work for other individuals with list chromosomes, but the results
     may be strange (perhaps better, but I doubt it)
     """
-    parents_num = 2
 
-    def perform(self, individuals):
+    def __call__(self, parent1, parent2):
         """ Applies the crossover operator.
 
-        :param individuals: The individuals to cross to generate progeny.
-        :return: A list of individuals.
+        :param parent1: One of the individuals from which generate the progeny.
+        :param parent2: The other.
+        :return: A tuple with the two children for this parents.
         """
-        i1, i2 = individuals[0], individuals[1]
+        child1, child2 = super().__call__(parent1, parent2)
         # Obtain the crossover range (as integer values)
-        a = int(''.join([str(b1 & b2) for (b1, b2) in zip(i1, i2)]), 2)
-        b = int(''.join([str(b1 | b2) for (b1, b2) in zip(i1, i2)]), 2)
+        a = int(''.join([str(b1 & b2) for (b1, b2) in zip(child1, child2)]), 2)
+        b = int(''.join([str(b1 | b2) for (b1, b2) in zip(child1, child2)]), 2)
 
         # Get the children (as integer values)
         c = random.randint(a, b)
@@ -46,11 +48,9 @@ class GeneralizedRecombination(ga_list.ListRecombination):
         bin_d = [int(x) for x in bin(d)[2:]]
 
         # Convert to chromosomes and we're finish
-        child1 = i1.population.spawning_pool.spawn()
-        child2 = i2.population.spawning_pool.spawn()
         for i in range(len(bin_c)):
             child1[i], child2[i] = bin_c[i], bin_d[i]
-        return [child1, child2, ]
+        return child1, child2
 
 
 # A Finite set of alleles where the only valid values are 0 and 1.
