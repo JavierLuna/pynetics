@@ -85,8 +85,6 @@ class SpawningPoolTestCase(unittest.TestCase):
 class TestPopulation(unittest.TestCase):
     """ Test for populations. """
 
-    # TODO Tests to check that the order of individuals is respected.
-
     @staticmethod
     def individuals(n=10, fitness_method=dummies.DummyFitness()):
         individuals = []

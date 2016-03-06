@@ -24,7 +24,8 @@ class GeneticAlgorithm(metaclass=ABCMeta):
 
     def __init__(
         self,
-        stop_condition: Callable[['GeneticAlgorithm'], bool]
+        stop_condition: Callable[['GeneticAlgorithm'], bool],
+        populations: 'Population',
     ):
         self.stop_condition = stop_condition
         self.generation = 0
@@ -62,12 +63,9 @@ class GeneticAlgorithm(metaclass=ABCMeta):
 
     @abstractmethod
     def best(self) -> 'Individual':
-        """ Returns the best individuals obtained until now.
+        """ Returns the best individual obtained until this moment.
 
-        They will be returned as a dictionary where the keys are the population
-        names and the values the best individuals for those populations.
-
-        :return: A dictionary with the best individual of each population.
+        :return: The best individual generated.
         """
 
 
