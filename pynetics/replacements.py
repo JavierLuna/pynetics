@@ -1,4 +1,4 @@
-import abc
+from pynetics import Replacement
 
 
 class LowElitism(Replacement):
@@ -16,8 +16,9 @@ class LowElitism(Replacement):
         :param population: The population where make the replacement.
         :param offspring: The new population to use as replacement.
         """
-        del population[-len(offspring):]
-        population.extend(offspring)
+        if offspring:
+            del population[-len(offspring):]
+            population.extend(offspring)
 
 
 class HighElitism(Replacement):
@@ -36,5 +37,6 @@ class HighElitism(Replacement):
         :param population: The population where make the replacement.
         :param offspring: The new population to use as replacement.
         """
-        population.extend(offspring)
-        del population[-len(offspring):]
+        if offspring:
+            population.extend(offspring)
+            del population[-len(offspring):]

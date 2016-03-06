@@ -12,7 +12,7 @@ from pynetics.utils import take_chances, clone_empty
 from .exceptions import WrongValueForInterval, NotAProbabilityError, \
     PyneticsError, InvalidSize
 
-__version__ = '0.3.0'
+__version__ = '0.3.4'
 
 
 class GeneticAlgorithm(metaclass=ABCMeta):
@@ -24,8 +24,7 @@ class GeneticAlgorithm(metaclass=ABCMeta):
 
     def __init__(
         self,
-        stop_condition: Callable[['GeneticAlgorithm'], bool],
-        populations: 'Population',
+        stop_condition: Callable[['GeneticAlgorithm'], bool]
     ):
         self.stop_condition = stop_condition
         self.generation = 0
