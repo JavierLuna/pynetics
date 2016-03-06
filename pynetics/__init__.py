@@ -665,7 +665,11 @@ class Replacement(metaclass=ABCMeta):
     # TODO Los test son los que chequean los tamaños de población.
     # TODO ¿No debería devolver la población?
     # TODO Los comentarios dejan un poco que desear
-    def __call__(self, population: Population, offspring: Sequence[Individual]):
+    def __call__(
+        self,
+        population: Population,
+        offspring: Sequence[Individual]
+    ):
         """ Performs some checks before applying the replacement method.
 
         :param population: The population where make the replacement.
@@ -702,7 +706,7 @@ class Selection(metaclass=ABCMeta):
         """
         self.repetable = repetable
 
-    def __call__(self, population: Population, n: bool) -> Sequence[Individual]:
+    def __call__(self, population: Population, n: int) -> Sequence[Individual]:
         """ Makes some checks to the configuration before delegating selection.
 
         After checking the parameters, the selection is performed by perform
@@ -722,7 +726,7 @@ class Selection(metaclass=ABCMeta):
             return self.perform(population, n)
 
     @abstractmethod
-    def perform(self, population: Population, n: bool) -> Sequence[Individual]:
+    def perform(self, population: Population, n: int) -> Sequence[Individual]:
         """ It makes the selection according to the subclass implementation.
 
         :param population: The population from which select the individuals.

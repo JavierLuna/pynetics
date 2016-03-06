@@ -10,7 +10,7 @@ from pynetics.stop import StepsNum, FitnessBound
 class StepsNumTestCase(TestCase):
     """ Test for the stop condition based on number of iterations. """
 
-    def test_steps_num_is_pickeable(self):
+    def test_class_is_pickeable(self):
         """ Checks if it's pickeable by writing it into a temporary file. """
         with TemporaryFile() as f:
             pickle.dump(StepsNum(steps=10), f)
@@ -35,7 +35,7 @@ class StepsNumTestCase(TestCase):
 class FitnessBoundTestCase(TestCase):
     """ If the genetic algorithm obtained a fine enough individual. """
 
-    def test_fitness_bound_is_pickeable(self):
+    def test_class_is_pickeable(self):
         """ Checks if it's pickeable by writing it into a temporary file. """
         with TemporaryFile() as f:
             pickle.dump(StepsNum(steps=10), f)

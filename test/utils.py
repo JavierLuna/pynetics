@@ -69,3 +69,13 @@ class DummyPopulation(Population):
             replacement=DummyReplacement(),
             individuals=individuals,
         )
+
+
+def individuals(n, fitness_method=DummyFitness()):
+    result = []
+    for i in range(n):
+        individual = DummyIndividual()
+        individual.fitness_cached = i
+        individual.fitness_method = fitness_method
+        result.append(individual)
+    return result

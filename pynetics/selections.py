@@ -1,6 +1,7 @@
-import abc
 import operator
 import random
+
+from pynetics import Selection
 
 
 class BestIndividual(Selection):
@@ -9,15 +10,18 @@ class BestIndividual(Selection):
     def perform(self, population, n):
         """ Gets the top n individuals out of all the population.
 
-        If "rep" is activated, the returned individuals will be n times the best
-        individual. If False, the returned individuals will be the top n
-        individuals.
+        If "repetable" is activated, the returned individuals will be n times
+        the best individual. If False, the returned individuals will be the top
+        n individuals.
 
         :param population: The population from which select the individuals.
         :param n: The number of individuals to return.
         :return: A list of n individuals.
         """
-        return [population[0] for _ in range(n)] if self.rep else population[:n]
+        if self.repetable:
+            return [population[0] for _ in range(n)]
+        else:
+            return population[:n]
 
 
 class ProportionalToPosition(Selection):
@@ -32,7 +36,7 @@ class ProportionalToPosition(Selection):
         fitness have better positions, but a very high fitness doesn't implies
         more chances to be selected).
 
-        If "rep" is activated, the returned individuals may be repeated.
+        If "repetable" is activated, the returned individuals may be repeated.
 
         :param n: The number of individuals to return.
         :param population: The population from which select the individuals.
@@ -45,16 +49,17 @@ class ProportionalToPosition(Selection):
 class Tournament(Selection):
     """ Selects best individuals of a random sample of the whole population. """
 
-    def __init__(self, m, rep=False):
+    def __init__(self, sample_size, repetable=False):
         """ Initializes this selector.
 
-        :param m: The size of the random sample of individuals to pick prior to
-            the selection of the fittest.
-        :param rep: If repetition of individuals is allowed. If true, there are
-            chances of the same individual be selected again. Defaults to False.
+        :param sample_size: The size of the random sample of individuals to pick
+            prior to make the selection of the fittest.
+        :param repetable: If repetition of individuals is allowed. If true,
+            there are chances of the same individual be selected again. Defaults
+            to False.
         """
-        super().__init__(rep)
-        self.__m = m
+        super().__init__(repetable=repetable)
+        self.sample_size = sample_size
 
     def perform(self, population, n):
         """ Gets the best individuals from a random sample of the population.
@@ -72,9 +77,9 @@ class Tournament(Selection):
         """
         individuals = []
         while len(individuals) < n:
-            sample = random.sample(population, self.__m)
+            sample = random.sample(population, self.sample_size)
             individual = max(sample, key=operator.methodcaller('fitness'))
-            if not self.rep or individual not in individuals:
+            if self.repetable or individual not in individuals:
                 individuals.append(individual)
         return individuals
 
@@ -92,6 +97,7 @@ class Uniform(Selection):
         :param n: The number of individuals to return.
         :return: A list of n individuals.
         """
-        if self.rep:
+        if self.repetable:
             return [random.choice(population) for _ in range(n)]
-        random.sample(population, n)
+        else:
+            random.sample(population, n)

@@ -4,14 +4,14 @@ from pynetics import StopCondition, GeneticAlgorithm
 class StepsNum(StopCondition):
     """ If the genetic algorithm has made enough iterations. """
 
-    def __init__(self, steps: int):
+    def __init__(self, steps):
         """ Initializes this function with the number of iterations.
 
         :param steps: The number of iterations to do before stop.
         """
         self.steps = steps
 
-    def __call__(self, genetic_algorithm: GeneticAlgorithm) -> bool:
+    def __call__(self, genetic_algorithm):
         """ Checks if this stop criteria is met.
 
         It will look at the generation of the genetic algorithm. It's expected
@@ -28,7 +28,7 @@ class StepsNum(StopCondition):
 class FitnessBound(StopCondition):
     """ If the genetic algorithm obtained a fine enough individual. """
 
-    def __init__(self, fitness_bound: float):
+    def __init__(self, fitness_bound):
         """ Initializes this function with the upper bound for the fitness.
 
         :param fitness_bound: A fitness value. The criteria will be met when the
@@ -37,7 +37,7 @@ class FitnessBound(StopCondition):
         """
         self.fitness_bound = fitness_bound
 
-    def __call__(self, genetic_algorithm: GeneticAlgorithm) -> bool:
+    def __call__(self, genetic_algorithm):
         """ Checks if this stop criteria is met.
 
         It will look at the fitness of the best individual the genetic algorithm
