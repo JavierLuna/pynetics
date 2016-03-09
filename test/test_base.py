@@ -1,6 +1,5 @@
 import pickle
 import unittest
-from unittest.mock import Mock
 
 from tempfile import TemporaryFile
 
@@ -134,31 +133,6 @@ class TestPopulation(unittest.TestCase):
         self.assertEquals(size + 1, len(population))
         self.assertIn(individuals[10], population)
 
-    def test_population_is_sorted_when_accessing_individuals(self):
-        population = utils.DummyPopulation(size=10)
-        self.assertTrue(population.sorted)
-        for individual in utils.individuals(10):
-            population.append(individual)
-            self.assertFalse(population.sorted)
-            _ = population[0]
-            self.assertTrue(population.sorted)
-
-    def test_best_individuals_are_stored(self):
-        size = 10
-        population = utils.DummyPopulation(size=size)
-        population.genetic_algorithm = Mock()
-        population.genetic_algorithm.generation = 0
-        best_individuals = []
-        for _ in range(100):
-            population.evolve()
-            population.genetic_algorithm.generation += 1
-            best_individuals.append(population.best())
-
-        self.assertListEqual(
-            best_individuals,
-            population.best_individuals_by_generation
-        )
-
     def test_best_individuals_are_returned(self):
         size = 10
         individuals = utils.individuals(size)
@@ -212,15 +186,6 @@ class SelectionTestCase(unittest.TestCase):
         """ Checks is pickeable by writing it into a temporary file. """
         with TemporaryFile() as f:
             pickle.dump(utils.DummySelection(), f)
-
-    def test_repetition_defaults_to_false(self):
-        """ Repetable parameter defaults to false. """
-        self.assertFalse(utils.DummySelection().repetable)
-
-    def test_repetition_is_correctly_stored_after_initialization(self):
-        """ Repetable parameter takes the value specified in initialization. """
-        self.assertFalse(utils.DummySelection(repetable=False).repetable)
-        self.assertTrue(utils.DummySelection(repetable=True).repetable)
 
     def test_error_if_more_selections_than_size_when_not_repetition(self):
         """ When no repetable and requested more individuals than available. """

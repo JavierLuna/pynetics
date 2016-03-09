@@ -10,7 +10,7 @@ pynetics.ga_list.ga_bin module
 .. automodule:: pynetics.ga_list.ga_bin
 :members:
         :undoc-members:
-        :show-inheritance:
+            :show-inheritance:
 
 pynetics.ga_list.ga_real module
 -------------------------------
@@ -18,7 +18,7 @@ pynetics.ga_list.ga_real module
 .. automodule:: pynetics.ga_list.ga_real
 :members:
         :undoc-members:
-        :show-inheritance:
+            :show-inheritance:
 
 
 Module contents
@@ -27,4 +27,4 @@ Module contents
 .. automodule:: pynetics.ga_list
 :members:
         :undoc-members:
-        :show-inheritance:
+            :show-inheritance:

@@ -18,10 +18,7 @@ class BestIndividual(Selection):
         :param n: The number of individuals to return.
         :return: A list of n individuals.
         """
-        if self.repetable:
-            return [population[0] for _ in range(n)]
-        else:
-            return population[:n]
+        return population[:n]
 
 
 class ProportionalToPosition(Selection):
@@ -49,7 +46,7 @@ class ProportionalToPosition(Selection):
 class Tournament(Selection):
     """ Selects best individuals of a random sample of the whole population. """
 
-    def __init__(self, sample_size, repetable=False):
+    def __init__(self, sample_size):
         """ Initializes this selector.
 
         :param sample_size: The size of the random sample of individuals to pick
@@ -58,7 +55,6 @@ class Tournament(Selection):
             there are chances of the same individual be selected again. Defaults
             to False.
         """
-        super().__init__(repetable=repetable)
         self.sample_size = sample_size
 
     def perform(self, population, n):
@@ -76,11 +72,11 @@ class Tournament(Selection):
         :return: A list of n individuals.
         """
         individuals = []
-        while len(individuals) < n:
+        for _ in range(n):
             sample = random.sample(population, self.sample_size)
-            individual = max(sample, key=operator.methodcaller('fitness'))
-            if self.repetable or individual not in individuals:
-                individuals.append(individual)
+            individuals.append(
+                max(sample, key=operator.methodcaller('fitness'))
+            )
         return individuals
 
 
@@ -97,7 +93,4 @@ class Uniform(Selection):
         :param n: The number of individuals to return.
         :return: A list of n individuals.
         """
-        if self.repetable:
-            return [random.choice(population) for _ in range(n)]
-        else:
-            random.sample(population, n)
+        random.sample(population, n)

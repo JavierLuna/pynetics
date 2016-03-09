@@ -31,7 +31,7 @@ class DummyFitness(Fitness):
 
 
 class DummyMutation(Mutation):
-    def __call__(self, individual):
+    def __call__(self, individual, p):
         return individual.clone()
 
 
@@ -68,13 +68,6 @@ class DummyPopulation(Population):
             spawning_pool=spawning_pool or DummySpawningPool(
                 fitness=DummyFitness()
             ),
-            replacement_rate=1.0,
-            selection=DummySelection(),
-            recombination=DummyRecombination(),
-            p_recombination=1.0,
-            mutation=DummyMutation(),
-            p_mutation=0.1,
-            replacement=DummyReplacement(),
             individuals=individuals or [],
         )
 

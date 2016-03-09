@@ -6,7 +6,8 @@ from tempfile import TemporaryFile
 from pynetics import PyneticsError
 from pynetics.ga_list import FiniteSetAlleles, ListIndividualSpawningPool, \
     ListIndividual, FixedLengthListRecombination, OnePointRecombination, \
-    TwoPointRecombination, RandomMaskRecombination, SwapGenes, RandomGeneValue
+    TwoPointRecombination, RandomMaskRecombination, SwapGenes, \
+    SingleGeneRandomValue
 from test import utils
 
 
@@ -278,7 +279,7 @@ class SwapGenesTestCase(TestCase):
         individual = ListIndividual()
         individual.extend(genes)
 
-        mutated = SwapGenes()(individual)
+        mutated = SwapGenes()(individual, p=1)
         # Are all the genes in the individual?
         [self.assertIn(i, mutated) for i in genes]
         # Are only two misplaced genes?
@@ -292,7 +293,7 @@ class RandomGeneValueTestCase(TestCase):
     def test_class_is_pickeable(self):
         """ Checks if it's pickeable by writing it into a temporary file. """
         with TemporaryFile() as f:
-            pickle.dump(RandomGeneValue(alleles=utils.DummyAlleles()), f)
+            pickle.dump(SingleGeneRandomValue(alleles=utils.DummyAlleles()), f)
 
     def test_check_genes_are_modified(self):
         """ Checks that the genes of the individual are modified.
@@ -306,20 +307,20 @@ class RandomGeneValueTestCase(TestCase):
         sp = ListIndividualSpawningPool(10, alleles, utils.DummyFitness())
         for _ in range(10):
             individual = sp.create()
-            mutated = RandomGeneValue(alleles=alleles)(individual)
+            mutated = SingleGeneRandomValue(alleles=alleles)(individual, p=1)
             # Have all the genes values allowed by the alleles?
             self.assertEquals(
                 [],
                 [i for i in mutated if i not in alleles.symbols]
             )
-            # Are all the genes (minus one) in the individual in the same position?
+            # Are all the genes (except one) in the same position?
             different_genes = [i for i, j in zip(mutated, individual) if i != j]
             self.assertEquals(len(different_genes), 1)
 
     def test_alleles_are_correctly_stored_after_initialization(self):
         symbols = (0, 1)
         alleles = FiniteSetAlleles(symbols)
-        mutation = RandomGeneValue(alleles=alleles)
+        mutation = SingleGeneRandomValue(alleles=alleles)
 
         self.assertEquals(alleles, mutation.alleles)
         self.assertIs(alleles, mutation.alleles)
