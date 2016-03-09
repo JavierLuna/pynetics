@@ -24,16 +24,6 @@ class BestIndividualTestCase(TestCase):
         with self.assertRaises(PyneticsError):
             BestIndividual()(population, p_size * 2)
 
-    def test_when_population_size_is_lower_than_selection_size_with_rep(self):
-        """ Best individual is selected as many times as selection size. """
-        p_size = 10
-        selection_size = p_size * 2
-        population = utils.DummyPopulation(size=p_size)
-        individuals = BestIndividual(repetable=True)(population, selection_size)
-        self.assertEquals(len(individuals), selection_size)
-        for individual in individuals:
-            self.assertEquals(individual, population[0])
-
     def test_when_population_size_is_equals_to_selection_size(self):
         """ All the population is returned. """
         p_size = 10
@@ -41,21 +31,6 @@ class BestIndividualTestCase(TestCase):
         population = utils.DummyPopulation(size=p_size, individuals=individuals)
         selected_individuals = BestIndividual()(population, p_size)
         self.assertEquals(len(selected_individuals), len(population))
-
-    def test_when_population_size_is_equals_to_selection_size_with_rep(self):
-        """ Best individual is returned as many times as population size. """
-        p_size = 10
-        selection_size = 10
-        individuals = utils.individuals(p_size)
-        population = utils.DummyPopulation(size=p_size)
-        selected_individuals = BestIndividual(repetable=True)(
-            population,
-            selection_size
-        )
-        self.assertEquals(len(individuals), selection_size)
-        self.assertEquals(len(individuals), len(selected_individuals))
-        for individual in selected_individuals:
-            self.assertEquals(individual, population[0])
 
     def test_when_population_size_is_bigger_than_selection_size(self):
         """ The best individuals are returned. """
@@ -66,16 +41,6 @@ class BestIndividualTestCase(TestCase):
         self.assertEquals(len(individuals), selection_size)
         for i in range(len(individuals)):
             self.assertEquals(individuals[i], population[i])
-
-    def test_when_population_size_is_bigger_than_selection_size_with_rep(self):
-        """ Best individual is returned as many times as selection size. """
-        p_size = 10
-        selection_size = int(p_size / 2)
-        population = utils.DummyPopulation(size=p_size)
-        individuals = BestIndividual(repetable=True)(population, selection_size)
-        self.assertEquals(len(individuals), selection_size)
-        for individual in individuals:
-            self.assertEquals(individual, population[0])
 
 
 class TournamentTestCase(TestCase):
@@ -94,40 +59,14 @@ class TournamentTestCase(TestCase):
         with self.assertRaises(PyneticsError):
             Tournament(sample_size=int(p_size / 2))(population, p_size * 2)
 
-    def test_when_population_size_is_lower_than_selection_size_with_rep(self):
-        """ At least one individual is selected more than once. """
-        p_size = 10
-        selection_size = p_size * 2
-        population = utils.DummyPopulation(size=p_size)
-        individuals = Tournament(
-            sample_size=int(p_size / 2),
-            repetable=True
-        )(population, selection_size)
-        self.assertEquals(len(individuals), selection_size)
-        self.assertTrue(len(population) >= len(set(individuals)))
-
     def test_when_population_size_is_equals_to_selection_size(self):
         """ All the population is returned. """
         p_size = 10
-        individuals = utils.individuals(p_size)
         population = utils.DummyPopulation(size=p_size)
         selected_individuals = Tournament(
             sample_size=int(p_size / 2)
         )(population, p_size)
         self.assertTrue(len(population) >= len(set(selected_individuals)))
-
-    def test_when_population_size_is_equals_to_selection_size_with_rep(self):
-        """ Best individual is returned as many times as population size. """
-        p_size = 10
-        selection_size = 10
-        individuals = utils.individuals(p_size)
-        population = utils.DummyPopulation(size=p_size)
-        selected_individuals = Tournament(
-            sample_size=int(p_size / 2),
-            repetable=True
-        )(population, selection_size)
-        self.assertEquals(len(individuals), selection_size)
-        self.assertEquals(len(individuals), len(selected_individuals))
 
     def test_when_population_size_is_bigger_than_selection_size(self):
         """ The best individuals are returned. """
@@ -135,17 +74,6 @@ class TournamentTestCase(TestCase):
         selection_size = int(p_size / 2)
         population = utils.DummyPopulation(size=p_size)
         individuals = Tournament(sample_size=int(p_size / 2))(
-            population,
-            selection_size
-        )
-        self.assertEquals(len(individuals), selection_size)
-
-    def test_when_population_size_is_bigger_than_selection_size_with_rep(self):
-        """ Best individual is returned as many times as selection size. """
-        p_size = 10
-        selection_size = int(p_size / 2)
-        population = utils.DummyPopulation(size=p_size)
-        individuals = Tournament(sample_size=int(p_size / 2), repetable=True)(
             population,
             selection_size
         )

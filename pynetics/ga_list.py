@@ -218,7 +218,7 @@ class SwapGenes(Mutation):
     subclasses.
     """
 
-    def __call__(self, individual):
+    def __call__(self, individual, p):
         """ Swaps the values of two positions of the list of values.
 
         When the individual is mutated, two random positions (pivots) are
@@ -230,18 +230,23 @@ class SwapGenes(Mutation):
         mutated    : 12365478
 
         :param individual: The individual to be mutated.
-        :return: The mutated individual.
+        :param p: The probability of mutation.
+        :return: A new individual mutated with a probabiity of p or looking
+            exactly to the one passed as parameter with a probability of 1-p.
         """
-        # Get two random diferent indexes
-        indexes = range(len(individual))
-        i1, i2 = tuple(random.sample(indexes, 2))
-        # Swap the genes in the cloned individual
         clone = individual.clone()
-        clone[i1], clone[i2] = clone[i2], clone[i1]
-        return clone
+        if take_chances(probability=p):
+            # Get two random diferent indexes
+            indexes = range(len(individual))
+            i1, i2 = tuple(random.sample(indexes, 2))
+            # Swap the genes in the cloned individual
+            clone[i1], clone[i2] = clone[i2], clone[i1]
+            return clone
+        else:
+            return clone
 
 
-class RandomGeneValue(Mutation):
+class SingleGeneRandomValue(Mutation):
     """ Mutates the individual by changing the value to a random gene. """
 
     def __init__(self, alleles):
@@ -252,7 +257,7 @@ class RandomGeneValue(Mutation):
         super().__init__()
         self.alleles = alleles
 
-    def __call__(self, individual):
+    def __call__(self, individual, p):
         """ Changes the value of a random gene of the individual.
 
         The mutated chromosome is obtained by changing a random gene as seen in
@@ -265,13 +270,61 @@ class RandomGeneValue(Mutation):
         mutated    : aabdaabc
 
         :param individual: The individual to be mutated.
+        :param p: The probability of mutation.
         """
-        # Get a random index in the list and generate a different gene for it
-        i = random.choice(range(len(individual)))
-        new_gene = self.alleles.get()
-        while individual[i] == new_gene:
-            new_gene = self.alleles.get()
-        # Set this gene in the cloned individual
         clone = individual.clone()
-        clone[i] = new_gene
+        if take_chances(probability=p):
+            # Set in a random position a different gene than before
+            i = random.choice(range(len(individual)))
+            new_gene = self.alleles.get()
+            while individual[i] == new_gene:
+                new_gene = self.alleles.get()
+            # Set this gene in the cloned individual
+            clone[i] = new_gene
+            return clone
+        else:
+            return clone
+
+
+class NGeneRandomValue(Mutation):
+    """ Mutates the individual by changing the value to a random gene. """
+
+    def __init__(self, alleles, n=None):
+        """ Initializes this object.
+
+        :param alleles: The set of values to choose from.
+        :param n: The number of how many random genes may mutate. If greater
+            than the size of individuals or None, the prone genes are all.
+            Defaults to None.
+        """
+        super().__init__()
+        self.alleles = alleles
+        self.n = n
+
+    def __call__(self, individual, p):
+        """ Changes the value of a random gene of the individual.
+
+        The mutated chromosome is obtained by changing a random gene as seen in
+        the next example:
+
+        individual : aabbaaba
+        alleles    : (a, b, c, d)
+        change pos : 7
+        -----------
+        mutated    : aabdaabc
+
+        :param individual: The individual to be mutated.
+        :param p: The probability of mutation.
+        """
+        indexes = random.sample(
+            range(len(individual)),
+            min(self.n or len(individual), len(individual)),
+        )
+        clone = individual.clone()
+        for i in indexes:
+            if take_chances(probability=p):
+                new_gene = self.alleles.get()
+                while individual[i] == new_gene:
+                    new_gene = self.alleles.get()
+                clone[i] = new_gene
         return clone

@@ -17,6 +17,7 @@ class LowElitism(Replacement):
         :param offspring: The new population to use as replacement.
         """
         if offspring:
+            population.sort()
             del population[-len(offspring):]
             population.extend(offspring)
 
@@ -38,5 +39,6 @@ class HighElitism(Replacement):
         :param offspring: The new population to use as replacement.
         """
         if offspring:
+            population.sort()
             population.extend(offspring)
             del population[-len(offspring):]

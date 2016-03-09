@@ -17,7 +17,7 @@ pynetics.catastrophe module
 .. automodule:: pynetics.catastrophe
 :members:
         :undoc-members:
-        :show-inheritance:
+            :show-inheritance:
 
 pynetics.crossover module
 -------------------------
@@ -25,7 +25,7 @@ pynetics.crossover module
 .. automodule:: pynetics.crossover
 :members:
         :undoc-members:
-        :show-inheritance:
+            :show-inheritance:
 
 pynetics.exceptions module
 --------------------------
@@ -33,7 +33,7 @@ pynetics.exceptions module
 .. automodule:: pynetics.exceptions
 :members:
         :undoc-members:
-        :show-inheritance:
+            :show-inheritance:
 
 pynetics.mutation module
 ------------------------
@@ -41,7 +41,7 @@ pynetics.mutation module
 .. automodule:: pynetics.mutation
 :members:
         :undoc-members:
-        :show-inheritance:
+            :show-inheritance:
 
 pynetics.replacement module
 ---------------------------
@@ -49,7 +49,7 @@ pynetics.replacement module
 .. automodule:: pynetics.replacement
 :members:
         :undoc-members:
-        :show-inheritance:
+            :show-inheritance:
 
 pynetics.selection module
 -------------------------
@@ -57,7 +57,7 @@ pynetics.selection module
 .. automodule:: pynetics.selection
 :members:
         :undoc-members:
-        :show-inheritance:
+            :show-inheritance:
 
 pynetics.stop module
 --------------------
@@ -65,7 +65,7 @@ pynetics.stop module
 .. automodule:: pynetics.stop
 :members:
         :undoc-members:
-        :show-inheritance:
+            :show-inheritance:
 
 pynetics.utils module
 ---------------------
@@ -73,7 +73,7 @@ pynetics.utils module
 .. automodule:: pynetics.utils
 :members:
         :undoc-members:
-        :show-inheritance:
+            :show-inheritance:
 
 
 Module contents
@@ -82,4 +82,4 @@ Module contents
 .. automodule:: pynetics
 :members:
         :undoc-members:
-        :show-inheritance:
+            :show-inheritance:

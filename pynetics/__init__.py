@@ -1,6 +1,3 @@
-import inspect
-import math
-from concurrent.futures import ProcessPoolExecutor
 from typing import Any, Iterable, Callable, Sequence
 
 import operator
@@ -22,6 +19,50 @@ class GeneticAlgorithm(metaclass=ABCMeta):
     contract required by the other classes to work properly.
     """
 
+    class GAListener:
+        """ Listener for the events caused by the genetic algorithm. """
+
+        @abstractmethod
+        def algorithm_started(self, ga: 'GeneticAlgorithm'):
+            """ Called when the algorithm start.
+
+            This method will be called AFTER initialization but BEFORE the first
+            iteration, including the check against the stop condition.
+
+            :param ga: The GeneticAlgorithm instanced that called this method.
+            """
+
+        @abstractmethod
+        def algorithm_finished(self, ga: 'GeneticAlgorithm'):
+            """ Called when the algorithm finishes.
+
+            Particularly, this method will be called AFTER the stop condition
+            has been met.
+
+            :param ga: The GeneticAlgorithm instanced that called this method.
+            """
+
+        @abstractmethod
+        def step_started(self, ga: 'GeneticAlgorithm'):
+            """ Called when a new step of the genetic algorithm starts.
+
+            This method will be called AFTER the stop condition has been checked
+            and proved to be false) and BEFORE the new step is computed.
+
+            :param ga: The GeneticAlgorithm instanced that called this method.
+            """
+
+        @abstractmethod
+        def step_finished(self, ga: 'GeneticAlgorithm'):
+            """ Called when a new step of the genetic algorithm finishes.
+
+            This method will be called AFTER an step of the algorithm has been
+            computed and BEFORE a new check against the stop condition is going
+            to be made.
+
+            :param ga: The GeneticAlgorithm instanced that called this method.
+            """
+
     def __init__(
         self,
         stop_condition: Callable[['GeneticAlgorithm'], bool]
@@ -30,7 +71,6 @@ class GeneticAlgorithm(metaclass=ABCMeta):
         self.generation = 0
         self.listeners = []
 
-    @abstractmethod
     def run(self):
         """ Runs the simulation.
 
@@ -61,56 +101,14 @@ class GeneticAlgorithm(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def best(self) -> 'Individual':
+    def best(self, generation: int = None) -> 'Individual':
         """ Returns the best individual obtained until this moment.
 
-        :return: The best individual generated.
+        :param generation: The generation of the individual that we want to
+            recover. If not set, this will be the one emerged in the last
+            generation. Defaults to None (not set, thus last generation).
+        :return: The best individual generated in the specified generation.
         """
-
-
-class GAListener:
-    """ A class that reacts to the events caused by the genetic algorithm. """
-
-    def algorithm_started(self, ga: GeneticAlgorithm):
-        """ Called when the algorithm start.
-
-        This method will be called AFTER initialization but BEFORE the first
-        iteration, including the check against the stop condition.
-
-        :param ga: The GeneticAlgorithm instanced that called this method.
-        """
-        pass
-
-    def algorithm_finished(self, ga: GeneticAlgorithm):
-        """ Called when the algorithm finishes.
-
-        Particularly, this method will be called AFTER the stop condition has
-        been met.
-
-        :param ga: The GeneticAlgorithm instanced that called this method.
-        """
-        pass
-
-    def step_started(self, ga: GeneticAlgorithm):
-        """ Called when a new step of the genetic algorithm starts.
-
-        This method will be called AFTER the stop condition has been checked
-        and proved to be false) and BEFORE the new step is computed.
-
-        :param ga: The GeneticAlgorithm instanced that called this method.
-        """
-        pass
-
-    def step_finished(self, ga: GeneticAlgorithm):
-        """ Called when a new step of the genetic algorithm finishes.
-
-        This method will be called AFTER an step of the algorithm has been
-        computed and BEFORE a new check against the stop condition is going to
-        be made.
-
-        :param ga: The GeneticAlgorithm instanced that called this method.
-        """
-        pass
 
 
 class StopCondition(metaclass=ABCMeta):
@@ -190,7 +188,7 @@ class Individual(metaclass=ABCMeta):
         individual = clone_empty(self)
         individual.cache_disabled = self.cache_disabled
         individual.population = self.population
-        individual.fitness_method = None
+        individual.fitness_method = self.fitness_method
         individual.fitness_cached = None
         return individual
 
@@ -241,62 +239,20 @@ class Population(abc.MutableSequence):
         self,
         name: str = None,
         size: int = None,
-        replacement_rate: float = None,
         spawning_pool: SpawningPool = None,
-        selection: 'Selection' = None,
-        recombination: 'Recombination' = None,
-        p_recombination: float = None,
-        mutation: 'Mutation' = None,
-        p_mutation: float = None,
-        replacement: 'Replacement' = None,
         individuals: Iterable[Individual] = None,
     ):
         """ Initializes the population, filling it with individuals.
 
-        When the population is initialized, the fitness of the individuals
-        generated is also calculated, implying that init_perform of every
-        individual is called.
-
-        Because operators requires to know which individual is the fittest,
-        others which is the less fit and others need to travel along the
-        collection of individuals in some way or another (e.g. from fittest to
-        less fit), the population is always sorted when an access is required.
-        Thus, writing population[0] always returns the fittest individual,
-        population[1] the next and so on, until population[-1] which is the less
-        fit.
-
         :param name: The name of this population.
         :param size: The size this population should have.
-        :param replacement_rate: The rate of individuals to be replaced in each
-            step of the algorithm. Must be a float value in the (0, 1] interval.
         :param spawning_pool: The object that generates individuals.
-        :param selection: The method to select individuals of the population to
-            recombine.
-        :param recombination: The method to recombine parents in order to
-            generate an offspring with characteristics of the parents. If none,
-            no recombination will be applied.
-        :param p_recombination: The odds for recombination method to be
-            performed over a set of selected individuals to generate progeny. If
-            not performed, progeny will be the parents. Must be a value between
-            0 and 1 (both included).
-        :param mutation: The method to mutate an individual. If none, no
-            mutation over the individual will be applied.
-        :param p_mutation: The odds for mutation method to be performed over a
-            progeny. It's applied once for each individual. If not performed the
-            individuals will not be modified. Must be a value between 0 and 1
-            (both included).
-        :param replacement: The method that will add and remove individuals from
-            the population given the set of old individuals (i.e. the ones on
-            the population before the evolution step) and new individuals (i.e.
-            the offspring).
         :param individuals: The list of starting individuals. If none or if its
             length is lower than the population size, the rest of individuals
             will be generated randomly. If the length of initial individuals is
             greater than the population size, a random sample of the individuals
             is selected as members of population.
         :raises ValueError: If no name for this population is provided.
-        :raises WrongValueForIntervalError: If any of the bounded values fall
-            out of their respective intervals.
         :raises NotAProbabilityError: If a value was expected to be a
             probability and it wasn't.
         :raises UnexpectedClassError: If any of the instances provided wasn't
@@ -306,30 +262,11 @@ class Population(abc.MutableSequence):
             raise PyneticsError('A name for population is required')
         if size is None or size < 1:
             raise InvalidSize('> 0', size)
-        if replacement_rate is None or not 0 < replacement_rate <= 1:
-            raise WrongValueForInterval(
-                'replacement_rate',
-                0,
-                1,
-                replacement_rate,
-                inc_lower=False
-            )
-        if p_recombination is None or not 0 <= p_recombination <= 1:
-            raise NotAProbabilityError('p_recombination', p_recombination)
-        if p_mutation is None or not 0 <= p_mutation <= 1:
-            raise NotAProbabilityError('p_mutation', p_mutation)
 
         self.name = name
         self.size = size
-        self.replacement_rate = replacement_rate
         self.spawning_pool = spawning_pool
         self.spawning_pool.population = self
-        self.selection = selection
-        self.recombination = recombination
-        self.p_recombination = p_recombination
-        self.mutation = mutation
-        self.p_mutation = p_mutation
-        self.replacement = replacement
 
         if individuals is not None:
             self.individuals = [i.clone() for i in individuals]
@@ -340,16 +277,12 @@ class Population(abc.MutableSequence):
         while len(self.individuals) < self.size:
             self.individuals.append(self.spawning_pool.spawn())
 
-        # Precomputed values to help to speed up the things a bit
-        self.offspring_size = int(math.ceil(size * replacement_rate))
-        self.selection_size = len(
-            inspect.signature(recombination.__call__).parameters
+    def sort(self):
+        """ Sorts this population from best to worst individual. """
+        self.individuals.sort(
+            key=operator.methodcaller('fitness'),
+            reverse=True
         )
-
-        self.sorted = False
-        self.genetic_algorithm = None
-        self.sort(init=True)
-        self.best_individuals_by_generation = [self[0]]
 
     def __len__(self):
         """ Returns the number fo individuals this population has. """
@@ -362,7 +295,6 @@ class Population(abc.MutableSequence):
 
         :param i: The ith individual to delete.
         """
-        self.sort()
         del self.individuals[i]
 
     def __setitem__(self, i, individual):
@@ -376,9 +308,8 @@ class Population(abc.MutableSequence):
         :param i: The position where to insert the individual.
         :param individual: The individual to be inserted.
         """
-        self.sorted = False
-        self.__setitem__(i, individual)
         individual.population = self
+        self.__setitem__(i, individual)
 
     def insert(self, i, individual):
         """ Ads a new element to the ith position of the population population.
@@ -391,7 +322,6 @@ class Population(abc.MutableSequence):
         :param i: The position where insert the individual.
         :param individual: The individual to be inserted in the population
         """
-        self.sorted = False
         individual.population = self
         self.individuals.insert(i, individual)
 
@@ -405,126 +335,15 @@ class Population(abc.MutableSequence):
         :param i: The index of the individual to retrieve.
         :return: The individual.
         """
-        self.sort()
         return self.individuals[i]
 
-    def sort(self, init=False):
-        """ Sorts this population from best to worst individual.
-
-        :param init: If enabled, the fitness to perform will be the implemented
-            in "init_perform" of fitness subclass. Is not expected to be used
-            other than in initialization time. Defaults to False.
-        """
-        if not self.sorted:
-            self.individuals.sort(
-                key=operator.methodcaller('fitness', init=init),
-                reverse=True
-            )
-            self.sorted = True
-
-    def evolve(self):
-        """ A step of evolution is made on this population.
-
-        That means that a full cycle of select-recombine-mutate-replace is
-        performed, potentially modifying the individuals this population
-        contains.
-        """
-        # First, we generate the offspring given population replacement rate.
-        offspring = []
-        while len(offspring) < self.offspring_size:
-            # Selection
-            parents = self.selection(self, self.selection_size)
-            # Recombination
-            if take_chances(self.p_recombination):
-                progeny = self.recombination(*parents)
-            else:
-                progeny = parents
-            individuals_who_fit = min(
-                len(progeny),
-                self.offspring_size - len(offspring)
-            )
-            progeny = random.sample(progeny, individuals_who_fit)
-            # Mutation
-            for individual in progeny:
-                if take_chances(self.p_mutation):
-                    self.mutation(individual)
-            # Add progeny to the offspring
-            offspring.extend(progeny)
-
-        # Once offspring is generated, a replace step is performed
-        self.replacement(self, offspring)
-
-        # The best individual is extracted and stored just in case is needed
-        self.store_best_individual()
-
-    def evolve_mp_no_funciona(self):
-        """ A step of evolution is made on this population.
-
-        That means that a full cycle of select-recombine-mutate-replace is
-        performed, potentially modifying the individuals this population
-        contains.
-        """
-        num_selections = int(self.offspring_size / self.selection_size) + 1
-        # Selection of each tuple of parents
-        with ProcessPoolExecutor(max_workers=1) as executor:
-            futures = []
-            for _ in range(num_selections):
-                future = executor.submit(
-                    mp_population_select,
-                    self,
-                    self,
-                    self.selection_size
-                )
-                futures.append(future)
-            selected_parents = (f.result() for f in futures)
-
-        # Offspring generation
-        offspring = []
-        for parents in selected_parents:
-            # Recombination
-            if take_chances(self.p_recombination):
-                progeny = self.recombination(*parents)
-            else:
-                progeny = parents
-            # Mutation
-            for i, individual in enumerate(progeny):
-                if take_chances(self.p_mutation):
-                    progeny[i] = self.mutation(individual)
-            # The new offspring is generated
-            offspring.extend(progeny)
-
-        # We remove random individuals in case the list is bigger than expected
-        if len(offspring) > self.offspring_size:
-            offspring = random.sample(offspring, self.offspring_size)
-
-        # Once offspring is generated, a replace step is performed
-        self.replacement(self, offspring)
-
-        # The best individual is extracted and stored just in case is needed
-        self.store_best_individual()
-
-    def store_best_individual(self):
-        current_gen = self.genetic_algorithm.generation
-        best_individual = self[0]
-
-        if len(self.best_individuals_by_generation) > current_gen:
-            self.best_individuals_by_generation[current_gen] = best_individual
-        else:
-            self.best_individuals_by_generation.append(best_individual)
-
-    def best(self, g=None):
+    def best(self):
         """ Returns the best individual for the gth.
 
-        :param g: The generation from where obtain the best individual. If not
-            specified, the returned generation will be the last generation.
         :return: The best individual for that generation.
         """
-        return self.best_individuals_by_generation[g or -1]
-
-
-def mp_population_select(arg, **kwarg):
-    """ Helper function for multiprocessing selection in population. """
-    return Population.selection(*arg, **kwarg)
+        self.sort()
+        return self[0]
 
 
 class Fitness(metaclass=ABCMeta):
@@ -605,10 +424,11 @@ class Mutation(metaclass=ABCMeta):
     """ Defines the behaviour of a genetic algorithm mutation operator. """
 
     @abstractmethod
-    def __call__(self, individual: Individual) -> Individual:
+    def __call__(self, individual: Individual, p: float) -> Individual:
         """ Applies the mutation method to the individual.
 
         :param individual: an individual to mutate.
+        :param p: The probability of mutation.
         :return: A cloned individual of the one passed as parameter but with a
             slightly (or not, X-MEN!!!!) mutation.
         """
@@ -666,19 +486,10 @@ class Selection(metaclass=ABCMeta):
     """ Selection of the fittest individuals among the population.
 
     The selection method is defined as a class. However, it is enough to provide
-    as a selection method a function that receives a village and a number of
-    individuals, and returns a sample of individuals of that size from the given
-    population.
+    as a selection method, i.e. a function that receives a sequence and a number
+    of individuals, and returns a sample of individuals of that size from the
+    given population.
     """
-
-    def __init__(self, repetable: bool = False):
-        """ Initializes this selector.
-
-        :param repetable: If repetition of individuals is allowed. If true,
-            there are chances for the same individual be selected again.
-            Defaults to False.
-        """
-        self.repetable = repetable
 
     def __call__(self, population: Population, n: int) -> Sequence[Individual]:
         """ Makes some checks to the configuration before delegating selection.
@@ -694,7 +505,7 @@ class Selection(metaclass=ABCMeta):
             to False (i.e. the same Individual cannot be selected twice or more
             times).
         """
-        if not self.repetable and len(population) < n:
+        if len(population) < n:
             raise PyneticsError()
         else:
             return self.perform(population, n)
