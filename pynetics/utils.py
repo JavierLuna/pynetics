@@ -1,7 +1,5 @@
 import random
 
-from .exceptions import UnexpectedClassError
-
 
 def take_chances(probability=0.5):
     """ Given a probability, the method generates a random value to see if is
@@ -14,20 +12,16 @@ def take_chances(probability=0.5):
     return random.random() < probability
 
 
-# Validations
-def check_is_instance_of(value, cls):
-    """ Checks if a value is instance of a given class.
+def clone_empty(obj):
+    """ Used by classes which need to be cloned avoiding the call to __init__.
 
-    If the value is an instance of the class, he method will return the value as
-    is. Otherwise, it will raise an error.
-
-    :param value: The value to be checked.
-    :param cls: The class to be checked on.
-    :return: The value.
-    :raises UnexpectedClassError: In case of the value is not an instance of the
-        given class.
+    :param obj: The object to be cloned.
+    :return: A newly empty object of the class obj.
     """
-    if not isinstance(value, cls):
-        raise UnexpectedClassError(cls)
-    else:
-        return value
+
+    class Empty(obj.__class__):
+        def __init__(self): pass
+
+    empty = Empty()
+    empty.__class__ = obj.__class__
+    return empty

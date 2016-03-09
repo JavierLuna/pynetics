@@ -1,5 +1,4 @@
 import setuptools
-
 import setuptools.command.test
 
 import pynetics
@@ -15,7 +14,7 @@ setuptools.setup(
     author_email='alberto.da@gmail.com',
     description='An evolutionary computation library for Python',
     long_description=open('README.rst').read(),
-    packages=['pynetics', 'pynetics.ga_list', 'pynetics.gggp',],
+    packages=['pynetics', 'pynetics.ga_list', 'pynetics.gggp', ],
     include_package_data=True,
     platforms='any',
     classifiers=[

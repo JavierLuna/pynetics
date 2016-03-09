@@ -1,4 +1,5 @@
 from unittest import TestCase
+
 from pynetics.gggp import grammar
 
 
@@ -160,11 +161,11 @@ class MultiplierTestCase(TestCase):
     def test_value_is_not_a_term_or_is_a_multiple_term(self):
         """ Param value should be a term other than Multiplier instance. """
         for invalid_value in (
-                [],
-                (),
-                {},
-                None,
-                grammar.Multiplier(grammar.SingleTerm('t')),
+            [],
+            (),
+            {},
+            None,
+            grammar.Multiplier(grammar.SingleTerm('t')),
         ):
             with self.assertRaises(ValueError):
                 grammar.Multiplier(invalid_value)
@@ -172,13 +173,13 @@ class MultiplierTestCase(TestCase):
     def test_p_should_be_an_int_or_float(self):
         """ Value p should be a number between 0.0 and 1.0 both incl. """
         for invalid_p in (
-                [],
-                (),
-                {},
-                None,
-                '7',
-                -0.1,
-                1.1,
+            [],
+            (),
+            {},
+            None,
+            '7',
+            -0.1,
+            1.1,
         ):
             with self.assertRaises(ValueError):
                 grammar.Multiplier(grammar.SingleTerm('t'), p=invalid_p)
@@ -427,12 +428,12 @@ class TestProduction(TestCase):
         """ Beta should be a list and not a simple object. """
         variable = 'variable'
         for invalid_term in (
-                [grammar.EpsilonTerminal, ],
-                (grammar.EpsilonTerminal,),
-                {'terminal': grammar.EpsilonTerminal},
-                None,
-                '7',
-                42,
+            [grammar.EpsilonTerminal, ],
+            (grammar.EpsilonTerminal,),
+            {'terminal': grammar.EpsilonTerminal},
+            None,
+            '7',
+            42,
         ):
             with self.assertRaises(ValueError):
                 grammar.Production(variable, invalid_term)
@@ -483,14 +484,14 @@ class GrammarTestCase(TestCase):
             ]
         all_but_one.append(grammar.EpsilonTerminal)
         for invalid_productions in (
-                (),
-                {},
-                None,
-                'terminal',
-                ['terminal'],
-                grammar.EpsilonTerminal,
-                [grammar.EpsilonTerminal],
-                all_but_one,
+            (),
+            {},
+            None,
+            'terminal',
+            ['terminal'],
+            grammar.EpsilonTerminal,
+            [grammar.EpsilonTerminal],
+            all_but_one,
         ):
             with self.assertRaises(ValueError):
                 grammar.Grammar('terminal', invalid_productions)
