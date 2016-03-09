@@ -237,14 +237,12 @@ class Population(abc.MutableSequence):
 
     def __init__(
         self,
-        name: str = None,
         size: int = None,
         spawning_pool: SpawningPool = None,
         individuals: Iterable[Individual] = None,
     ):
         """ Initializes the population, filling it with individuals.
 
-        :param name: The name of this population.
         :param size: The size this population should have.
         :param spawning_pool: The object that generates individuals.
         :param individuals: The list of starting individuals. If none or if its
@@ -252,18 +250,13 @@ class Population(abc.MutableSequence):
             will be generated randomly. If the length of initial individuals is
             greater than the population size, a random sample of the individuals
             is selected as members of population.
-        :raises ValueError: If no name for this population is provided.
-        :raises NotAProbabilityError: If a value was expected to be a
-            probability and it wasn't.
+        :raises InvalidSize: If the provided size for the population is invalid.
         :raises UnexpectedClassError: If any of the instances provided wasn't
             of the required class.
         """
-        if not name:
-            raise PyneticsError('A name for population is required')
         if size is None or size < 1:
             raise InvalidSize('> 0', size)
 
-        self.name = name
         self.size = size
         self.spawning_pool = spawning_pool
         self.spawning_pool.population = self
