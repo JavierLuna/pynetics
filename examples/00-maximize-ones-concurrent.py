@@ -1,6 +1,6 @@
 import time
 
-from pynetics.algorithms import SimpleGA, ConcurrentGA
+from pynetics.algorithms import ConcurrentGA
 from pynetics.ga_bin import BinaryIndividualSpawningPool, AllGenesCanSwitch, \
     MomentOfIntertiaDiversity
 from pynetics.ga_list import RandomMaskRecombination
@@ -18,7 +18,7 @@ def maximize_ones_fitness(individual):
     return 1. / (1. + (len(individual) - sum(individual)))
 
 
-class Listener(SimpleGA.GAListener):
+class Listener(ConcurrentGA.GAListener):
     def __init__(self):
         self.start_time = 0
         self.total_time = 0
