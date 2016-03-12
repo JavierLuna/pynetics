@@ -10,16 +10,16 @@ class LowElitism(Replacement):
     replacement (i.e. a generational scheme).
     """
 
-    def perform(self, population, offspring):
+    def __call__(self, population, individuals):
         """ Removes less fit individuals and then inserts the offspring.
 
         :param population: The population where make the replacement.
-        :param offspring: The new population to use as replacement.
+        :param individuals: The new population to use as replacement.
         """
-        if offspring:
+        if individuals:
             population.sort()
-            del population[-len(offspring):]
-            population.extend(offspring)
+            del population[-len(individuals):]
+            population.extend(individuals)
 
 
 class HighElitism(Replacement):
@@ -32,13 +32,13 @@ class HighElitism(Replacement):
     replacement.
     """
 
-    def perform(self, population, offspring):
+    def __call__(self, population, indviduals):
         """ Inserts the offspring in the population and removes the less fit.
 
         :param population: The population where make the replacement.
-        :param offspring: The new population to use as replacement.
+        :param indviduals: The new population to use as replacement.
         """
-        if offspring:
+        if indviduals:
             population.sort()
-            population.extend(offspring)
-            del population[-len(offspring):]
+            population.extend(indviduals)
+            del population[-len(indviduals):]

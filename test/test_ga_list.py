@@ -5,7 +5,7 @@ from tempfile import TemporaryFile
 
 from pynetics import PyneticsError
 from pynetics.ga_list import FiniteSetAlleles, ListIndividualSpawningPool, \
-    ListIndividual, FixedLengthListRecombination, OnePointRecombination, \
+    ListIndividual, ListRecombination, OnePointRecombination, \
     TwoPointRecombination, RandomMaskRecombination, SwapGenes, \
     SingleGeneRandomValue
 from test import utils
@@ -146,7 +146,7 @@ class ListIndividualTestCase(TestCase):
 class FixedLengthListRecombinationTestCase(TestCase):
     """ Behavior for recombinations where lengths should be the same. """
 
-    class FixedLengthListRecombinationNoAbstract(FixedLengthListRecombination):
+    class ListRecombinationNoAbstract(ListRecombination):
         def __call__(self, *args, **kwargs):
             return super().__call__(*args, **kwargs)
 
@@ -154,7 +154,7 @@ class FixedLengthListRecombinationTestCase(TestCase):
         """ Checks if it's pickeable by writing it into a temporary file. """
         with TemporaryFile() as f:
             pickle.dump(
-                self.FixedLengthListRecombinationNoAbstract(),
+                self.ListRecombinationNoAbstract(),
                 f
             )
 
@@ -170,7 +170,7 @@ class FixedLengthListRecombinationTestCase(TestCase):
             (sp1.create(), sp2.create(), sp1.create()),
             (sp2.create(), sp1.create(), sp2.create()),
         )
-        recombination = self.FixedLengthListRecombinationNoAbstract()
+        recombination = self.ListRecombinationNoAbstract()
         for parents in parents_list:
             with self.assertRaises(PyneticsError):
                 recombination(*parents)
@@ -184,7 +184,7 @@ class FixedLengthListRecombinationTestCase(TestCase):
             (sp.create(), sp.create(), sp.create()),
             (sp.create(), sp.create(), sp.create(), sp.create()),
         )
-        recombination = self.FixedLengthListRecombinationNoAbstract()
+        recombination = self.ListRecombinationNoAbstract()
         for parents in parents_list:
             progeny = recombination(*parents)
             self.assertEquals(len(progeny), len(parents))

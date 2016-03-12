@@ -1,5 +1,3 @@
-from typing import Any, Iterable, Callable, Sequence
-
 import operator
 import random
 from abc import ABCMeta, abstractmethod
@@ -23,7 +21,7 @@ class GeneticAlgorithm(metaclass=ABCMeta):
         """ Listener for the events caused by the genetic algorithm. """
 
         @abstractmethod
-        def algorithm_started(self, ga: 'GeneticAlgorithm'):
+        def algorithm_started(self, ga):
             """ Called when the algorithm start.
 
             This method will be called AFTER initialization but BEFORE the first
@@ -33,7 +31,7 @@ class GeneticAlgorithm(metaclass=ABCMeta):
             """
 
         @abstractmethod
-        def algorithm_finished(self, ga: 'GeneticAlgorithm'):
+        def algorithm_finished(self, ga):
             """ Called when the algorithm finishes.
 
             Particularly, this method will be called AFTER the stop condition
@@ -43,7 +41,7 @@ class GeneticAlgorithm(metaclass=ABCMeta):
             """
 
         @abstractmethod
-        def step_started(self, ga: 'GeneticAlgorithm'):
+        def step_started(self, ga):
             """ Called when a new step of the genetic algorithm starts.
 
             This method will be called AFTER the stop condition has been checked
@@ -53,7 +51,7 @@ class GeneticAlgorithm(metaclass=ABCMeta):
             """
 
         @abstractmethod
-        def step_finished(self, ga: 'GeneticAlgorithm'):
+        def step_finished(self, ga):
             """ Called when a new step of the genetic algorithm finishes.
 
             This method will be called AFTER an step of the algorithm has been
@@ -63,10 +61,7 @@ class GeneticAlgorithm(metaclass=ABCMeta):
             :param ga: The GeneticAlgorithm instanced that called this method.
             """
 
-    def __init__(
-        self,
-        stop_condition: Callable[['GeneticAlgorithm'], bool]
-    ):
+    def __init__(self, stop_condition):
         self.stop_condition = stop_condition
         self.generation = 0
         self.listeners = []
@@ -80,7 +75,7 @@ class GeneticAlgorithm(metaclass=ABCMeta):
         """
         self.initialize()
         [l.algorithm_started(self) for l in self.listeners]
-        while not self.stop_condition(self):
+        while self.best() is None or not self.stop_condition(self):
             [l.step_started(self) for l in self.listeners]
             self.step()
             self.generation += 1
@@ -101,7 +96,7 @@ class GeneticAlgorithm(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def best(self, generation: int = None) -> 'Individual':
+    def best(self, generation=None):
         """ Returns the best individual obtained until this moment.
 
         :param generation: The generation of the individual that we want to
@@ -120,7 +115,7 @@ class StopCondition(metaclass=ABCMeta):
     """
 
     @abstractmethod
-    def __call__(self, genetic_algorithm: GeneticAlgorithm) -> bool:
+    def __call__(self, genetic_algorithm):
         """ Checks if this stop condition is met.
 
         :param genetic_algorithm: The genetic algorithm where this stop
@@ -136,10 +131,7 @@ class Individual(metaclass=ABCMeta):
     i.e. the environment where populations of individuals evolve.
     """
 
-    # TODO Cache phenotype
-    # TODO ¿Maybe a clone method?
-
-    def __init__(self, disable_cache: bool = False):
+    def __init__(self):
         """ Initializes the individual.
 
         An individual contains a cache for the fitness method that prevents to
@@ -149,12 +141,10 @@ class Individual(metaclass=ABCMeta):
         :param disable_cache: Disables the fitness cache. Defaults to True,
             which means the cache is enabled.
         """
-        self.cache_disabled = disable_cache
         self.population = None
         self.fitness_method = None
-        self.fitness_cached = None
 
-    def fitness(self, init: bool = False) -> float:
+    def fitness(self):
         """ Computes the fitness of this individual.
 
         It will use the fitness method defined on its spawning pool.
@@ -163,19 +153,16 @@ class Individual(metaclass=ABCMeta):
             defaults to False.
         :return: A float value.
         """
-        if self.cache_disabled or (not self.fitness_cached and init):
-            return self.fitness_method(self, init)
-        elif not self.fitness_cached:
-            self.fitness_cached = self.fitness_method(self, init)
-        return self.fitness_cached
+        return self.fitness_method(self)
 
     @abstractmethod
-    def phenotype(self) -> Any:
+    def phenotype(self):
         """ The expression of this particular individual in the environment.
 
         :return: An object representing this individual in the environment
         """
 
+    @abstractmethod
     def clone(self):
         """ Creates an instance as an exact copy of this individual
 
@@ -186,25 +173,48 @@ class Individual(metaclass=ABCMeta):
         :return: A brand new individual like this one.
         """
         individual = clone_empty(self)
-        individual.cache_disabled = self.cache_disabled
         individual.population = self.population
         individual.fitness_method = self.fitness_method
-        individual.fitness_cached = None
         return individual
+
+
+class Diversity:
+    """ Represents the diversity of a population subset. """
+
+    @abstractmethod
+    def __call__(self, individuals):
+        """ It returns a value that symbolizes how diverse is the population.
+
+        The expected value will rely completely over the Individual
+        implementation.
+
+        :param individuals: A sequence of individuals from which obtain the
+            diversity.
+        :return: A value representing the diversity.
+        """
 
 
 class SpawningPool(metaclass=ABCMeta):
     """ Defines the methods for creating individuals required by population. """
 
-    def __init__(self, fitness: 'Fitness'):
+    def __init__(self, fitness, diversity):
         """ Initializes this spawning pool.
 
-        :param fitness: The method to evaluate individuals.
+        :param fitness: The method to evaluate individuals. It's expected to be
+            a callable that returns a float value where the higher the value,
+            the better the individual. Instances of subclasses of class Fitness
+            can be used for this purpose.
+        :param diversity: The method to compute the diversity of a sequence of
+            individuals generated by this SpawningPool instance. Is expected to
+            be a function that generates a diversity representation given a
+            subset of individuals. Instances of subclasses of class Diversity
+            can be used for this purpose.
         """
         self.population = None
         self.fitness = fitness
+        self.diversity = diversity
 
-    def spawn(self) -> Individual:
+    def spawn(self):
         """ Returns a new random individual.
 
         It uses the abstract method "create" to be implemented with the logic
@@ -219,7 +229,7 @@ class SpawningPool(metaclass=ABCMeta):
         return individual
 
     @abstractmethod
-    def create(self) -> Individual:
+    def create(self):
         """ Creates a new individual randomly.
 
         :return: A new Individual object.
@@ -227,7 +237,6 @@ class SpawningPool(metaclass=ABCMeta):
 
 
 class Population(abc.MutableSequence):
-    # TODO What if population where splitten in two (normal and sorted).
     """ Manages a population of individuals.
 
     A population is where individuals of the same kind evolve over an
@@ -235,12 +244,7 @@ class Population(abc.MutableSequence):
     more complex schemes involve two or more populations evolving concurrently.
     """
 
-    def __init__(
-        self,
-        size: int = None,
-        spawning_pool: SpawningPool = None,
-        individuals: Iterable[Individual] = None,
-    ):
+    def __init__(self, size=None, spawning_pool=None, individuals=None):
         """ Initializes the population, filling it with individuals.
 
         :param size: The size this population should have.
@@ -270,12 +274,22 @@ class Population(abc.MutableSequence):
         while len(self.individuals) < self.size:
             self.individuals.append(self.spawning_pool.spawn())
 
+        self.__sorted = False
+        self.__diversity = None
+
+    def diversity(self):
+        if self.__diversity is None:
+            self.__diversity = self.spawning_pool.diversity(self.individuals)
+        return self.__diversity
+
     def sort(self):
         """ Sorts this population from best to worst individual. """
-        self.individuals.sort(
-            key=operator.methodcaller('fitness'),
-            reverse=True
-        )
+        if self.__sorted is False:
+            self.individuals.sort(
+                key=operator.methodcaller('fitness'),
+                reverse=True
+            )
+            self.__sorted = True
 
     def __len__(self):
         """ Returns the number fo individuals this population has. """
@@ -290,6 +304,8 @@ class Population(abc.MutableSequence):
         """
         del self.individuals[i]
 
+        self.__diversity = None
+
     def __setitem__(self, i, individual):
         """ Puts the named individual in the ith position.
 
@@ -302,7 +318,10 @@ class Population(abc.MutableSequence):
         :param individual: The individual to be inserted.
         """
         individual.population = self
-        self.__setitem__(i, individual)
+        self.individuals.__setitem__(i, individual)
+
+        self.__sorted = False
+        self.__diversity = None
 
     def insert(self, i, individual):
         """ Ads a new element to the ith position of the population population.
@@ -318,6 +337,9 @@ class Population(abc.MutableSequence):
         individual.population = self
         self.individuals.insert(i, individual)
 
+        self.__sorted = False
+        self.__diversity = None
+
     def __getitem__(self, i):
         """ Returns the individual located on the ith position.
 
@@ -328,7 +350,7 @@ class Population(abc.MutableSequence):
         :param i: The index of the individual to retrieve.
         :return: The individual.
         """
-        return self.individuals[i]
+        return self.individuals.__getitem__(i)
 
     def best(self):
         """ Returns the best individual for the gth.
@@ -342,74 +364,15 @@ class Population(abc.MutableSequence):
 class Fitness(metaclass=ABCMeta):
     """ Method to estimate how adapted is the individual to the environment. """
 
-    def __call__(self, individual: Individual, init: bool = False) -> float:
-        """ Calculates the fitness of the individual.
-
-        This method does some checks and the delegates the computation of the
-        fitness to the "perform" method.
-
-        :param individual: The individual to which estimate the adaptation.
-        :param init: If this call to fitness is in initialization time. It
-            defaults to False.
-        :return: A sortable object representing the adaptation of the individual
-            to the environment.
-        :raises PyneticsError: If the individual is None.
-        """
-        if individual is None:
-            raise PyneticsError('The individual cannot be None')
-        elif init:
-            return self.init_perform(individual)
-        else:
-            return self.perform(individual)
-
-    def init_perform(self, individual: Individual) -> float:
-        """ Estimates how adapted is the individual at initialization time.
-
-        This is useful in schemas where the fitness while initializing is
-        computed in a different way than along the generations.
-
-        Overriding this method can be tricky, specially in a co-evolutionary
-        scheme. In this stage of the algorithm (initialization) the populations
-        are not sorted, and it's position on its population cannot depend on the
-        best of other individuals of other populations (circular dependency).
-        Therefore, calling other_population[0] is not an option here.
-
-        The scheme proposed by Mitchell A. et. al. in "A Cooperative
-        Coevolutionary Approach to Function Optimization", the initialization
-        may be performed by selecting a random individual among the other
-        populations instead the best. For this purpose, a random() method in
-        Population class is provided.
-
-        The default behavior is to call method "perform" but can be overridden
-        to any other behavior if needed.
-
-        :param individual: The individual to which estimate the adaptation.
-        :return: A sortable object representing the adaptation of the individual
-            to the environment.
-        :raises PyneticsError: If genetic algorithm is not set at the moment. It
-            is highly probable that co-evolution is being implemented and that
-            init_perform method is needed and .
-        """
-        try:
-            return self.perform(individual)
-        except AttributeError as e:
-            # If genetic_algorithm property is not set at this moment, it's
-            # probably because a co-evolution is being implemented and that an
-            # init_perform implementation is required.
-            msg = '{}. Maybe an init_perform implementation is needed'.format(e)
-            raise PyneticsError(msg)
-
     @abstractmethod
-    def perform(self, individual: Individual) -> bool:
+    def __call__(self, individual):
         """ Estimates how adapted is the individual.
 
-        Must return something comparable (in order to be sorted with the results
-        of the methods for other fitnesses). It's supposed that, the highest the
-        fitness value is, the fittest the individual is in the environment.
+        Must return a float value where the higher the value, the better the
+        adaption of the individual to the environment.
 
         :param individual: The individual to which estimate the adaptation.
-        :return: A sortable object representing the adaptation of the individual
-            to the environment.
+        :return: A float value pointing the adation to the environment.
         """
 
 
@@ -417,7 +380,7 @@ class Mutation(metaclass=ABCMeta):
     """ Defines the behaviour of a genetic algorithm mutation operator. """
 
     @abstractmethod
-    def __call__(self, individual: Individual, p: float) -> Individual:
+    def __call__(self, individual, p):
         """ Applies the mutation method to the individual.
 
         :param individual: an individual to mutate.
@@ -435,9 +398,8 @@ class Recombination(metaclass=ABCMeta):
     aspects derived from their parents.
     """
 
-    # TODO Don't know if *args: Individual is correct.
     @abstractmethod
-    def __call__(self, *args: Individual) -> Sequence[Individual]:
+    def __call__(self, *args):
         """ Implementation of the recombine method.
 
         :param args: One or more Individual instances to use as parents in the
@@ -449,29 +411,12 @@ class Recombination(metaclass=ABCMeta):
 class Replacement(metaclass=ABCMeta):
     """ Replacement of individuals of the population. """
 
-    # TODO Los test son los que chequean los tamaños de población.
-    # TODO ¿No debería devolver la población?
-    # TODO Los comentarios dejan un poco que desear
-    def __call__(
-        self,
-        population: Population,
-        offspring: Sequence[Individual]
-    ):
-        """ Performs some checks before applying the replacement method.
-
-        :param population: The population where make the replacement.
-        :param offspring: The new population to use as replacement.
-        """
-        self.perform(population, offspring)
-
     @abstractmethod
-    def perform(self, population: Population, offspring: Sequence[Individual]):
+    def __call__(self, population, individuals):
         """ It makes the replacement according to the subclass implementation.
 
-        It is recommended for perform method to return the same
-
         :param population: The population where make the replacement.
-        :param offspring: The new population to use as replacement.
+        :param individuals: The new population to use as replacement.
         """
 
 
@@ -484,7 +429,7 @@ class Selection(metaclass=ABCMeta):
     given population.
     """
 
-    def __call__(self, population: Population, n: int) -> Sequence[Individual]:
+    def __call__(self, population, n):
         """ Makes some checks to the configuration before delegating selection.
 
         After checking the parameters, the selection is performed by perform
@@ -504,7 +449,7 @@ class Selection(metaclass=ABCMeta):
             return self.perform(population, n)
 
     @abstractmethod
-    def perform(self, population: Population, n: int) -> Sequence[Individual]:
+    def perform(self, population, n):
         """ It makes the selection according to the subclass implementation.
 
         :param population: The population from which select the individuals.
@@ -521,22 +466,9 @@ class Catastrophe(metaclass=ABCMeta):
     operation.
     """
 
-    def __call__(self, population: Population):
-        """ Tries to apply the catastrophic operator to the population.
-
-        This method does some checks and the delegates the application of the
-        catastrophic operator to the "perform" method.
+    @abstractmethod
+    def __call__(self, population):
+        """ Applies the catastrophe to the specified population.
 
         :param population: The population where apply the catastrophic method.
-        """
-        if population is None:
-            raise ValueError('The population cannot be None')
-        else:
-            return self.perform(population)
-
-    @abstractmethod
-    def perform(self, population: Population):
-        """ Implementation of the catastrophe operation.
-
-        :param population: the population which may suffer the catastrophe
         """

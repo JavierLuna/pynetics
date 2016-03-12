@@ -1,6 +1,7 @@
 import abc
 
-# TODO I'm not proud of this methods. I think they performance may be improved.
+# TODO Refactor these inefficient methods
+from pynetics import Catastrophe
 from .utils import take_chances
 
 
@@ -18,12 +19,12 @@ class ProbabilityBasedCatastrophe(Catastrophe, metaclass=abc.ABCMeta):
         """
         self.__probability = probability
 
-    def perform(self, population):
+    def __call__(self, population):
         if take_chances(self.__probability):
-            self.perform_catastrophe()
+            self.perform(population)
 
     @abc.abstractmethod
-    def perform_catastrophe(self, population):
+    def perform(self, population):
         """ Returns a list of the individuals to remove from population.
 
         :param population: The population from where extract individuals.
@@ -34,7 +35,7 @@ class ProbabilityBasedCatastrophe(Catastrophe, metaclass=abc.ABCMeta):
 class PackingByProbability(ProbabilityBasedCatastrophe):
     """ Replaces all repeated individuals maintaining only one copy of each. """
 
-    def perform_catastrophe(self, population):
+    def perform(self, population):
         """ Replaces all repeated individuals by new ones.
 
         :param population: The population where apply the catastrophe.
@@ -49,7 +50,7 @@ class PackingByProbability(ProbabilityBasedCatastrophe):
 class DoomsdayByProbability(ProbabilityBasedCatastrophe):
     """ Replaces all but the best individual. """
 
-    def perform_catastrophe(self, population):
+    def perform(self, population):
         """ Replaces all the individuals but the best.
 
         :param population: The population where apply the catastrophe.

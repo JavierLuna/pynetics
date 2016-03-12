@@ -36,12 +36,12 @@ class DummyMutation(Mutation):
 
 
 class DummyRecombination(Recombination):
-    def __call__(self, *args: Individual):
+    def __call__(self, *args):
         return [i.clone() for i in args]
 
 
 class DummyReplacement(Replacement):
-    def perform(self, population, offspring):
+    def __call__(self, population, individual):
         return population
 
 
@@ -63,7 +63,6 @@ class DummyAlleles(Alleles):
 class DummyPopulation(Population):
     def __init__(self, size, spawning_pool=None, individuals=None):
         super().__init__(
-            name='dummy',
             size=size,
             spawning_pool=spawning_pool or DummySpawningPool(
                 fitness=DummyFitness()

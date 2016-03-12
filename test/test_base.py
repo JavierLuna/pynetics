@@ -25,38 +25,6 @@ class IndividualTestCase(unittest.TestCase):
         with TemporaryFile() as f:
             pickle.dump(utils.DummyIndividual(), f)
 
-    def test_computed_fitness_is_cached(self):
-        individual = utils.DummyIndividual()
-        individual.fitness_method = utils.DummyFitness()
-        self.assertFalse(individual.cache_disabled)
-        self.assertIsNone(individual.fitness_cached)
-        individual.fitness()
-        self.assertIsNotNone(individual.fitness_cached)
-
-    def test_computed_init_fitness_is_not_cached(self):
-        individual = utils.DummyIndividual()
-        individual.fitness_method = utils.DummyFitness()
-        self.assertFalse(individual.cache_disabled)
-        self.assertIsNone(individual.fitness_cached)
-        individual.fitness(init=True)
-        self.assertIsNone(individual.fitness_cached)
-
-    def test_computed_fitness_is_not_cached_if_cache_disabled(self):
-        individual = utils.DummyIndividual(disable_cache=True)
-        individual.fitness_method = utils.DummyFitness()
-        self.assertTrue(individual.cache_disabled)
-        self.assertIsNone(individual.fitness_cached)
-        individual.fitness()
-        self.assertIsNone(individual.fitness_cached)
-
-    def test_computed_init_fitness_is_not_cached_if_cache_disabled(self):
-        individual = utils.DummyIndividual(disable_cache=True)
-        individual.fitness_method = utils.DummyFitness()
-        self.assertTrue(individual.cache_disabled)
-        self.assertIsNone(individual.fitness_cached)
-        individual.fitness(init=True)
-        self.assertIsNone(individual.fitness_cached)
-
 
 class SpawningPoolTestCase(unittest.TestCase):
     """ Tests for SpawningPool instances. """
