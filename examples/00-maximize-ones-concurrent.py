@@ -8,9 +8,9 @@ from pynetics.replacements import LowElitism
 from pynetics.selections import Tournament
 from pynetics.stop import FitnessBound
 
-population_size = 100
+population_size = 10
 tournament = 3
-replacement_rate = 0.99
+replacement_rate = 0.9
 individual_size = 50
 
 
@@ -47,8 +47,7 @@ class Listener(SimpleGA.GAListener):
 
 
 if __name__ == '__main__':
-    #ga = ConcurrentGA(
-    ga = SimpleGA(
+    ga = ConcurrentGA(
         stop_condition=FitnessBound(1),
         size=population_size,
         spawning_pool=BinaryIndividualSpawningPool(
@@ -63,7 +62,6 @@ if __name__ == '__main__':
         p_recombination=1,
         p_mutation=1. / individual_size,
         replacement_rate=replacement_rate,
-        #processes=3
     )
     ga.listeners.append(Listener())
     ga.run()
