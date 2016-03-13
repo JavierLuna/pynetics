@@ -210,6 +210,11 @@ class RandomMaskRecombination(ListRecombination):
 
     This crossover implementation works with two (and only two) individuals of
     type ListIndividual (or subclasses).
+
+    Louis, S. J. and Rawlins, G. J. E. (1991) Designer Genetic Algorithms:
+    Genetic Algorithms in Structures Design. In R. K. Belew and L. B. Booker
+    (eds.) Proceedings of the Fourth International Conferenceon Genetic
+    Algorithms (San Mateo: Morgan Kau man), 53-60.
     """
 
     def __call__(self, parent1, parent2):

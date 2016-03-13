@@ -2,7 +2,7 @@ import time
 
 from pynetics.algorithms import SimpleGA
 from pynetics.ga_bin import BinaryIndividualSpawningPool, AllGenesCanSwitch, \
-    MomentOfIntertiaDiversity
+    AverageHamming
 from pynetics.ga_list import RandomMaskRecombination
 from pynetics.replacements import LowElitism
 from pynetics.selections import Tournament
@@ -11,7 +11,7 @@ from pynetics.stop import FitnessBound
 population_size = 10
 tournament = 3
 replacement_rate = 0.9
-individual_size = 50
+individual_size = 100
 
 
 def maximize_ones_fitness(individual):
@@ -53,7 +53,7 @@ if __name__ == '__main__':
         spawning_pool=BinaryIndividualSpawningPool(
             size=individual_size,
             fitness=maximize_ones_fitness,
-            diversity=MomentOfIntertiaDiversity(),
+            diversity=AverageHamming(),
         ),
         selection=Tournament(tournament),
         recombination=RandomMaskRecombination(),

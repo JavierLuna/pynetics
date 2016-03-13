@@ -2,7 +2,7 @@ import time
 
 from pynetics.algorithms import ConcurrentGA
 from pynetics.ga_bin import BinaryIndividualSpawningPool, AllGenesCanSwitch, \
-    MomentOfIntertiaDiversity
+    AverageHamming
 from pynetics.ga_list import RandomMaskRecombination
 from pynetics.replacements import LowElitism
 from pynetics.selections import Tournament
@@ -53,7 +53,7 @@ if __name__ == '__main__':
         spawning_pool=BinaryIndividualSpawningPool(
             size=individual_size,
             fitness=maximize_ones_fitness,
-            diversity=MomentOfIntertiaDiversity(),
+            diversity=AverageHamming(),
         ),
         selection=Tournament(tournament),
         recombination=RandomMaskRecombination(),
