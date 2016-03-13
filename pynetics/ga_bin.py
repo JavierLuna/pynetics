@@ -40,13 +40,14 @@ class BinaryIndividualSpawningPool(SpawningPool):
         return individual
 
 
-class MomentOfIntertiaDiversity(Diversity):
-    """ A diversity implementation based on centroids and intertia.
+class MomentOfInertia(Diversity):
+    """ A diversity implementation based on centroids and inertia.
 
     Extracted from paper "Measurement of Population Diversity" of R.W. Morrison
     et. al.
     """
 
+    # TODO Not working. Review.
     def __call__(self, individuals):
         centroid_vector = [0 for _ in individuals[0]]
         for individual in individuals:
@@ -61,6 +62,32 @@ class MomentOfIntertiaDiversity(Diversity):
             for j, individual in enumerate(individuals):
                 diversity += (individual[i] - centroid_vector[i]) ** 2
         return diversity
+
+
+class AverageHamming(Diversity):
+    """ Diversity implementation of the average of each hamming loci distances.
+
+    Predicting Convergence Time for Genetic Algorithms Sushil J. Louis and
+    Gregory J. E. Rawlins
+    """
+
+    def __call__(self, individuals):
+        diversity = 0.0
+        total = 0.0
+        individual_len = len(individuals[0])
+        for j, i1 in enumerate(individuals[:-1]):
+            for k, i2 in enumerate(individuals[j:]):
+                diversity += self.f(i1, i2)
+                total += individual_len
+        return diversity / total
+
+    @staticmethod
+    def f(i1, i2):
+        hamming = 0.0
+        for g1, g2 in zip(i1, i2):
+            if g1 != g2:
+                hamming += 1
+        return hamming
 
 
 class BinaryIndividual(Individual, abc.MutableSequence):
