@@ -57,7 +57,7 @@ class ListIndividualsWithFiniteSetAllelesDiversity(Diversity):
         return float(genes_diversity) / float(total_diversity)
 
 
-class ListIndividualSpawningPool(SpawningPool, metaclass=ABCMeta):
+class ListIndividualSpawningPool(SpawningPool):
     """ Defines the methods for creating individuals required by population. """
 
     def __init__(self, size, alleles, fitness, diversity):
