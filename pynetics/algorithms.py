@@ -4,7 +4,8 @@ import multiprocessing
 
 import random
 
-from pynetics import Population, GeneticAlgorithm, take_chances, PyneticsError
+from pynetics import Population, GeneticAlgorithm, take_chances, PyneticsError, \
+    NoMutation
 
 
 class SimpleGA(GeneticAlgorithm):
@@ -21,8 +22,8 @@ class SimpleGA(GeneticAlgorithm):
         spawning_pool,
         selection,
         recombination,
-        mutation,
         replacement,
+        mutation=None,
         p_recombination=0.9,
         p_mutation=0.1,
         replacement_rate=1.0,
@@ -71,7 +72,7 @@ class SimpleGA(GeneticAlgorithm):
         self.offspring_size = int(math.ceil(size * replacement_rate))
         self.selection = selection
         self.recombination = recombination
-        self.mutation = mutation
+        self.mutation = mutation or NoMutation()
         self.replacement = replacement
         self.replacement_rate = replacement_rate
         self.p_recombination = p_recombination
@@ -139,8 +140,8 @@ class ConcurrentGA(GeneticAlgorithm):
         spawning_pool,
         selection,
         recombination,
-        mutation,
         replacement,
+        mutation=None,
         p_recombination=0.9,
         p_mutation=0.1,
         replacement_rate=1.0,
@@ -152,7 +153,7 @@ class ConcurrentGA(GeneticAlgorithm):
         self.offspring_size = int(math.ceil(size * replacement_rate))
         self.selection = selection
         self.recombination = recombination
-        self.mutation = mutation
+        self.mutation = mutation or NoMutation()
         self.replacement = replacement
         self.replacement_rate = replacement_rate
         self.p_recombination = p_recombination

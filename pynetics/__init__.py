@@ -7,7 +7,7 @@ from pynetics.utils import take_chances, clone_empty
 from .exceptions import WrongValueForInterval, NotAProbabilityError, \
     PyneticsError, InvalidSize
 
-__version__ = '0.3.7'
+__version__ = '0.3.9'
 
 
 class GeneticAlgorithm(metaclass=ABCMeta):
@@ -388,6 +388,11 @@ class Mutation(metaclass=ABCMeta):
         :return: A cloned individual of the one passed as parameter but with a
             slightly (or not, X-MEN!!!!) mutation.
         """
+
+
+class NoMutation(Mutation):
+    def __call__(self, individual, p):
+        return individual
 
 
 class Recombination(metaclass=ABCMeta):
