@@ -390,6 +390,11 @@ class Mutation(metaclass=ABCMeta):
         """
 
 
+class NoMutation(Mutation):
+    def __call__(self, individual, p):
+        return individual
+
+
 class Recombination(metaclass=ABCMeta):
     """ Defines the behaviour of a recombination operator.
 
