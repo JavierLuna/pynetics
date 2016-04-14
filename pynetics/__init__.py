@@ -7,7 +7,7 @@ from pynetics.utils import take_chances, clone_empty
 from .exceptions import WrongValueForInterval, NotAProbabilityError, \
     PyneticsError, InvalidSize
 
-__version__ = '0.3.9'
+__version__ = '0.4.0'
 
 
 class GeneticAlgorithm(metaclass=ABCMeta):

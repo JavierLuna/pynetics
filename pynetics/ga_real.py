@@ -42,6 +42,28 @@ class PlainRecombination(ListRecombination):
         return child1, child2
 
 
+class FlexibleRecombination(ListRecombination):
+    def __init__(self, α):
+        self.α = α
+
+    def __call__(self, parent1, parent2):
+        """ Realizes the crossover operation.
+
+        :param parent1: One of the individuals from which generate the progeny.
+        :param parent2: The other.
+        :return: A list of two individuals, each one a child containing some
+            characteristics derived from the parents.
+        """
+        child1, child2 = super().__call__(parent1, parent2)
+        for g in range(len(parent1)):
+            lower_bound = min(parent1[g], parent2[g]) - self.α
+            upper_bound = max(parent1[g], parent2[g]) + self.α
+
+            child1[g] = random.uniform(lower_bound, upper_bound)
+            child2[g] = upper_bound - (child1[g] - lower_bound)
+        return child1, child2
+
+
 class MorphologicalRecombination(ListRecombination):
     # TODO We need to improve this crossover (maybe a diversity for population?)
     """Crossover that changes its behaviour depending on population diversity.
