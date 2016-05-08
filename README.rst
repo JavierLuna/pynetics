@@ -1,6 +1,6 @@
-==========
-Pyvolution
-==========
+========
+Pynetics
+========
 
 ***********************************************
 An evolutionary computation library for Python.
