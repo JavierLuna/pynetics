@@ -120,6 +120,9 @@ class BinaryIndividual(Individual, abc.MutableSequence):
         clone.genes = self.genes[:]
         return clone
 
+    def __str__(self):
+        return ''.join(str(b) for b in self.genes)
+
 
 class GeneralizedRecombination(ListRecombination):
     """ Offspring is obtained by crossing individuals as they where integers.

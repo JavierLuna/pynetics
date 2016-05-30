@@ -3,6 +3,8 @@ import random
 from abc import ABCMeta, abstractmethod
 from collections import abc
 
+import collections
+
 from pynetics.utils import take_chances, clone_empty
 from .exceptions import WrongValueForInterval, NotAProbabilityError, \
     PyneticsError, InvalidSize
@@ -16,55 +18,15 @@ class GeneticAlgorithm(metaclass=ABCMeta):
     More than one algorithm may exist so a base class is created for specify the
     contract required by the other classes to work properly.
     """
-
-    class GAListener:
-        """ Listener for the events caused by the genetic algorithm. """
-
-        @abstractmethod
-        def algorithm_started(self, ga):
-            """ Called when the algorithm start.
-
-            This method will be called AFTER initialization but BEFORE the first
-            iteration, including the check against the stop condition.
-
-            :param ga: The GeneticAlgorithm instanced that called this method.
-            """
-
-        @abstractmethod
-        def algorithm_finished(self, ga):
-            """ Called when the algorithm finishes.
-
-            Particularly, this method will be called AFTER the stop condition
-            has been met.
-
-            :param ga: The GeneticAlgorithm instanced that called this method.
-            """
-
-        @abstractmethod
-        def step_started(self, ga):
-            """ Called when a new step of the genetic algorithm starts.
-
-            This method will be called AFTER the stop condition has been checked
-            and proved to be false) and BEFORE the new step is computed.
-
-            :param ga: The GeneticAlgorithm instanced that called this method.
-            """
-
-        @abstractmethod
-        def step_finished(self, ga):
-            """ Called when a new step of the genetic algorithm finishes.
-
-            This method will be called AFTER an step of the algorithm has been
-            computed and BEFORE a new check against the stop condition is going
-            to be made.
-
-            :param ga: The GeneticAlgorithm instanced that called this method.
-            """
+    ALGORITHM_START = 'ALGORITHM_START'
+    ALGORITHM_END = 'ALGORITHM_END'
+    STEP_START = 'STEP_START'
+    STEP_END = 'STEP_END'
 
     def __init__(self, stop_condition):
         self.stop_condition = stop_condition
         self.generation = 0
-        self.listeners = []
+        self.listeners = collections.defaultdict(list)
 
     def run(self):
         """ Runs the simulation.
@@ -74,26 +36,29 @@ class GeneticAlgorithm(metaclass=ABCMeta):
         abstract method "step".
         """
         self.initialize()
-        [l.algorithm_started(self) for l in self.listeners]
+        self.call_listeners(GeneticAlgorithm.ALGORITHM_START)
         while self.best() is None or not self.stop_condition(self):
-            [l.step_started(self) for l in self.listeners]
+            self.call_listeners(GeneticAlgorithm.STEP_START)
             self.step()
             self.generation += 1
-            [l.step_finished(self) for l in self.listeners]
+            self.call_listeners(GeneticAlgorithm.STEP_END)
+        self.call_listeners(GeneticAlgorithm.ALGORITHM_END)
         self.finish()
-        [l.algorithm_finished(self) for l in self.listeners]
+
+    def call_listeners(self, message):
+        [f(self) for f in self.listeners[message]]
 
     def initialize(self):
         """ Called when starting the genetic algorithm to initialize it. """
         self.generation = 0
 
-    def step(self):
-        """ Called on every iteration of the algorithm. """
-        pass
-
     def finish(self):
         """ Called one the algorithm has finished. """
         pass
+
+    @abstractmethod
+    def step(self):
+        """ Called on every iteration of the algorithm. """
 
     @abstractmethod
     def best(self, generation=None):
@@ -104,6 +69,55 @@ class GeneticAlgorithm(metaclass=ABCMeta):
             generation. Defaults to None (not set, thus last generation).
         :return: The best individual generated in the specified generation.
         """
+
+    def on_start(self, f):
+        """ Specifies a functor to be called when the algorithm starts.
+
+        This function will be called AFTER initialization but BEFORE the first
+        iteration, including the check against the stop condition.
+
+        :param f: The functor to be called. It must accept a GeneticAlgorithm
+            instance as a parameter.
+        """
+        self.listeners[GeneticAlgorithm.ALGORITHM_START].append(f)
+        return self
+
+    def on_end(self, f):
+        """ Specifies a functor to be called when the algorithm ends.
+
+        Particularly, this method will be called AFTER the stop condition
+        has been met.
+
+        :param f: The functor to be called. It must accept a GeneticAlgorithm
+            instance as a parameter.
+        """
+        self.listeners[GeneticAlgorithm.ALGORITHM_END].append(f)
+        return self
+
+    def on_step_start(self, f):
+        """ Specifies a functor to be called when an iteration step starts.
+
+        This method will be called AFTER the stop condition has been checked
+        and proved to be false) and BEFORE the new step is computed.
+
+        :param f: The functor to be called. It must accept a GeneticAlgorithm
+            instance as a parameter.
+        """
+        self.listeners[GeneticAlgorithm.STEP_START].append(f)
+        return self
+
+    def on_step_end(self, f):
+        """ Specifies a functor to be called when an iteration ends.
+
+        This method will be called AFTER an step of the algorithm has been
+        computed and BEFORE a new check against the stop condition is going
+        to be made.
+
+        :param f: The functor to be called. It must accept a GeneticAlgorithm
+            instance as a parameter.
+        """
+        self.listeners[GeneticAlgorithm.STEP_END].append(f)
+        return self
 
 
 class StopCondition(metaclass=ABCMeta):
@@ -137,9 +151,6 @@ class Individual(metaclass=ABCMeta):
         An individual contains a cache for the fitness method that prevents to
         compute it over and over again. However, as well as it is possible to
         clear this cache, also it is possible to disable it.
-
-        :param disable_cache: Disables the fitness cache. Defaults to True,
-            which means the cache is enabled.
         """
         self.population = None
         self.fitness_method = None

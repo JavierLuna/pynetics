@@ -85,10 +85,12 @@ class SimpleGA(GeneticAlgorithm):
         self.best_individuals = []
 
     def initialize(self):
+        super().initialize()
         self.population = Population(
             size=self.population_size,
             spawning_pool=self.spawning_pool,
         )
+        self.best_individuals.clear()
 
     def step(self):
         offspring = []
