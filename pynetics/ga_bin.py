@@ -10,7 +10,7 @@ from pynetics.ga_list import ListRecombination
 class BinaryIndividualSpawningPool(SpawningPool):
     """ Defines the methods for creating binary individuals. """
 
-    def __init__(self, size, fitness, diversity):
+    def __init__(self, size):
         """ Initializes this spawning pool for generating binary individuals.
 
         :param size: The size of the individuals to be created from
@@ -25,10 +25,7 @@ class BinaryIndividualSpawningPool(SpawningPool):
             subset of individuals. Instances of subclasses of class Diversity
             can be used for this purpose.
         """
-        super().__init__(
-            fitness=fitness,
-            diversity=diversity
-        )
+        super().__init__()
         self.individual_size = size
 
     def create(self):

@@ -1,23 +1,9 @@
 import pickle
+from tempfile import TemporaryFile
 from unittest import TestCase
 
-from tempfile import TemporaryFile
-
-from pynetics.ga_bin import binary_alleles, BinaryIndividualSpawningPool, \
-    GeneralizedRecombination
-from test import utils
-
-
-class BinaryAllelesTestCase(TestCase):
-    def test_class_is_pickeable(self):
-        """ Checks if it's pickeable by writing it into a temporary file. """
-        with TemporaryFile() as f:
-            pickle.dump(binary_alleles, f)
-
-    def test_binary_alleles_only_contains_0_and_1(self):
-        self.assertEquals(len(binary_alleles.symbols), 2)
-        self.assertIn(0, binary_alleles.symbols)
-        self.assertIn(1, binary_alleles.symbols)
+from pynetics.ga_bin import BinaryIndividualSpawningPool
+from pynetics.ga_bin import GeneralizedRecombination
 
 
 class BinaryIndividualSpawningPoolTestCase(TestCase):
@@ -26,10 +12,7 @@ class BinaryIndividualSpawningPoolTestCase(TestCase):
     def test_class_is_pickeable(self):
         """ Checks if it's pickeable by writing it into a temporary file. """
         with TemporaryFile() as f:
-            pickle.dump(BinaryIndividualSpawningPool(
-                10,
-                utils.DummyFitness()
-            ), f)
+            pickle.dump(BinaryIndividualSpawningPool(10), f)
 
 
 class GeneralizedRecombinationTestCase(TestCase):

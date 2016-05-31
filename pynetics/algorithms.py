@@ -1,7 +1,5 @@
 import inspect
 import math
-import multiprocessing
-
 import random
 
 from pynetics import Population, GeneticAlgorithm, take_chances, PyneticsError, \
@@ -16,19 +14,19 @@ class SimpleGA(GeneticAlgorithm):
     """
 
     def __init__(
-        self,
-        stop_condition,
-        population_size,
-        spawning_pool,
-        fitness,
-        selection,
-        recombination,
-        replacement,
-        mutation=None,
-        diversity=None,
-        p_recombination=0.9,
-        p_mutation=0.1,
-        replacement_rate=1.0,
+            self,
+            stop_condition,
+            population_size,
+            spawning_pool,
+            fitness,
+            selection,
+            recombination,
+            replacement,
+            mutation=None,
+            diversity=None,
+            p_recombination=0.9,
+            p_mutation=0.1,
+            replacement_rate=1.0,
     ):
         """ Initializes this instance.
 
@@ -85,7 +83,7 @@ class SimpleGA(GeneticAlgorithm):
         self.selection = selection
         self.recombination = recombination
         self.mutation = mutation or NoMutation()
-        self.mutation = diversity
+        self.diversity = diversity
         self.replacement = replacement
         self.replacement_rate = replacement_rate
         self.p_recombination = p_recombination
@@ -105,7 +103,7 @@ class SimpleGA(GeneticAlgorithm):
             spawning_pool=self.spawning_pool,
         )
         for individual in self.population:
-            individual.fitness = self.fitness
+            individual.fitness_method = self.fitness
         # Clear the best individuals historical cache
         self.best_individuals.clear()
 

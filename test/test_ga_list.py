@@ -63,28 +63,16 @@ class ListIndividualSpawningPoolTestCase(TestCase):
     def test_class_is_pickeable(self):
         """ Checks if it's pickeable by writing it into a temporary file. """
         with TemporaryFile() as f:
-            pickle.dump(ListIndividualSpawningPool(
-                10,
-                utils.DummyAlleles(),
-                utils.DummyFitness()
-            ), f)
+            pickle.dump(ListIndividualSpawningPool(10, utils.DummyAlleles()), f)
 
     def test_size_is_correctly_stored_after_initialization(self):
         for size in (10, 100, 1000, 10000, 100000, 1000000):
-            spawning_pool = ListIndividualSpawningPool(
-                size,
-                utils.DummyAlleles(),
-                utils.DummyFitness()
-            )
-            self.assertEquals(size, spawning_pool.size)
+            sp = ListIndividualSpawningPool(size, utils.DummyAlleles())
+            self.assertEquals(size, sp.size)
 
     def test_alleles_correctly_stored_after_initialization(self):
         alleles = utils.DummyAlleles()
-        spawning_pool = ListIndividualSpawningPool(
-            10,
-            alleles,
-            utils.DummyFitness()
-        )
+        spawning_pool = ListIndividualSpawningPool(10, alleles)
         self.assertEquals(alleles, spawning_pool.alleles)
         self.assertIs(alleles, spawning_pool.alleles)
 
@@ -92,11 +80,7 @@ class ListIndividualSpawningPoolTestCase(TestCase):
         symbols = (0, 1)
         alleles = FiniteSetAlleles(symbols)
         for size in (10, 100, 1000):
-            spawning_pool = ListIndividualSpawningPool(
-                size,
-                alleles,
-                utils.DummyFitness()
-            )
+            spawning_pool = ListIndividualSpawningPool(size, alleles)
             for _ in range(10):
                 individual = spawning_pool.create()
                 self.assertEquals(size, len(individual))
@@ -158,27 +142,10 @@ class FixedLengthListRecombinationTestCase(TestCase):
                 f
             )
 
-    def test_error_raised_when_parents_of_different_lengths(self):
-        symbols = (0, 1)
-        alleles = FiniteSetAlleles(symbols)
-        sp1 = ListIndividualSpawningPool(10, alleles, utils.DummyFitness())
-        sp2 = ListIndividualSpawningPool(100, alleles, utils.DummyFitness())
-        parents_list = (
-            (sp1.create(), sp2.create()),
-            (sp1.create(), sp1.create(), sp2.create()),
-            (sp1.create(), sp2.create(), sp2.create()),
-            (sp1.create(), sp2.create(), sp1.create()),
-            (sp2.create(), sp1.create(), sp2.create()),
-        )
-        recombination = self.ListRecombinationNoAbstract()
-        for parents in parents_list:
-            with self.assertRaises(PyneticsError):
-                recombination(*parents)
-
     def test_correct_recombination_of_individuals_with_same_length(self):
         symbols = (0, 1)
         alleles = FiniteSetAlleles(symbols)
-        sp = ListIndividualSpawningPool(10, alleles, utils.DummyFitness())
+        sp = ListIndividualSpawningPool(10, alleles)
         parents_list = (
             (sp.create(), sp.create()),
             (sp.create(), sp.create(), sp.create()),
@@ -205,7 +172,7 @@ class OnePointRecombinationTestCase(TestCase):
         size = 10
         symbols = (0, 1)
         alleles = FiniteSetAlleles(symbols)
-        sp = ListIndividualSpawningPool(size, alleles, utils.DummyFitness())
+        sp = ListIndividualSpawningPool(size, alleles)
         parents = sp.create(), sp.create()
         progeny = OnePointRecombination()(*parents)
 
@@ -226,7 +193,7 @@ class TwoPointRecombinationTestCase(TestCase):
         size = 10
         symbols = (0, 1)
         alleles = FiniteSetAlleles(symbols)
-        sp = ListIndividualSpawningPool(size, alleles, utils.DummyFitness())
+        sp = ListIndividualSpawningPool(size, alleles)
         parents = sp.create(), sp.create()
         progeny = TwoPointRecombination()(*parents)
 
@@ -247,7 +214,7 @@ class RandomMaskRecombinationTestCase(TestCase):
         size = 10
         symbols = (0, 1)
         alleles = FiniteSetAlleles(symbols)
-        sp = ListIndividualSpawningPool(size, alleles, utils.DummyFitness())
+        sp = ListIndividualSpawningPool(size, alleles)
         parents = sp.create(), sp.create()
         progeny = RandomMaskRecombination()(*parents)
 
@@ -304,7 +271,7 @@ class RandomGeneValueTestCase(TestCase):
         """
         symbols = (0, 1)
         alleles = FiniteSetAlleles(symbols)
-        sp = ListIndividualSpawningPool(10, alleles, utils.DummyFitness())
+        sp = ListIndividualSpawningPool(10, alleles)
         for _ in range(10):
             individual = sp.create()
             mutated = SingleGeneRandomValue(alleles=alleles)(individual, p=1)
