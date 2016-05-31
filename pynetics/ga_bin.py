@@ -95,7 +95,7 @@ class BinaryIndividual(Individual, abc.MutableSequence):
 
     def __init__(self):
         super().__init__()
-        self.genes = None
+        self.genes = []
 
     def __getitem__(self, index):
         return self.genes[index]
@@ -119,6 +119,9 @@ class BinaryIndividual(Individual, abc.MutableSequence):
         clone = super().clone()
         clone.genes = self.genes[:]
         return clone
+
+    def __str__(self):
+        return ''.join(str(b) for b in self.genes)
 
 
 class GeneralizedRecombination(ListRecombination):
