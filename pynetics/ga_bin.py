@@ -95,7 +95,7 @@ class BinaryIndividual(Individual, abc.MutableSequence):
 
     def __init__(self):
         super().__init__()
-        self.genes = None
+        self.genes = []
 
     def __getitem__(self, index):
         return self.genes[index]
