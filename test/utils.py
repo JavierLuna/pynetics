@@ -26,7 +26,7 @@ class DummySpawningPool(SpawningPool):
 
 
 class DummyFitness(Fitness):
-    def perform(self, individual):
+    def __call__(self, individual):
         return 0.5
 
 
@@ -64,9 +64,7 @@ class DummyPopulation(Population):
     def __init__(self, size, spawning_pool=None, individuals=None):
         super().__init__(
             size=size,
-            spawning_pool=spawning_pool or DummySpawningPool(
-                fitness=DummyFitness()
-            ),
+            spawning_pool=spawning_pool or DummySpawningPool(),
             individuals=individuals or [],
         )
 

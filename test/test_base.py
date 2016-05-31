@@ -32,21 +32,7 @@ class SpawningPoolTestCase(unittest.TestCase):
     def test_class_is_pickeable(self):
         """ Checks is pickeable by writing it into a temporary file. """
         with TemporaryFile() as f:
-            pickle.dump(utils.DummySpawningPool(
-                fitness=utils.DummyFitness()
-            ), f)
-
-    def test_fitness_method_is_correctly_stored_after_initialization(self):
-        """ If fitness method is correctly stored in the instance. """
-        fitness = utils.DummyFitness()
-        spawning_pool = utils.DummySpawningPool(fitness=fitness)
-        self.assertIs(fitness, spawning_pool.fitness)
-
-    def test_spawn_individual_assigns_the_fitness_method(self):
-        fitness = utils.DummyFitness()
-        spawning_pool = utils.DummySpawningPool(fitness=fitness)
-        individual = spawning_pool.spawn()
-        self.assertIs(fitness, individual.fitness_method)
+            pickle.dump(utils.DummySpawningPool(), f)
 
 
 class TestPopulation(unittest.TestCase):

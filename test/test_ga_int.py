@@ -11,12 +11,12 @@ from test import utils
 class IntegerIndividualSpawningPoolTestCase(TestCase):
     """ Tests for instances of this class. """
 
-    def test_class_is_pickeable(self):
+    @staticmethod
+    def test_class_is_pickeable():
         """ Checks if it's pickeable by writing it into a temporary file. """
         with TemporaryFile() as f:
             pickle.dump(IntegerIndividualSpawningPool(
                 10,
-                utils.DummyFitness(),
                 0,
                 10,
             ), f)
@@ -25,7 +25,6 @@ class IntegerIndividualSpawningPoolTestCase(TestCase):
         for lower in (-10, -5, 0, 5, 10):
             sp = IntegerIndividualSpawningPool(
                 10,
-                utils.DummyFitness(),
                 lower,
                 lower + 10
             )
@@ -35,7 +34,6 @@ class IntegerIndividualSpawningPoolTestCase(TestCase):
         for upper in (-10, -5, 0, 5, 10):
             sp = IntegerIndividualSpawningPool(
                 10,
-                utils.DummyFitness(),
                 upper - 10,
                 upper
             )
@@ -43,7 +41,8 @@ class IntegerIndividualSpawningPoolTestCase(TestCase):
 
 
 class IntegerRangeRecombinationTestCase(TestCase):
-    def test_class_is_pickeable(self):
+    @staticmethod
+    def test_class_is_pickeable():
         """ Checks if it's pickeable by writing it into a temporary file. """
         with TemporaryFile() as f:
             pickle.dump(IntegerRangeRecombination(), f)
