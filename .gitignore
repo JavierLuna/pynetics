@@ -61,3 +61,5 @@ target/
 
 # Mac stuff
 .DS_Store
+
+# Jupyter notebook stuff

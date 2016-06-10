@@ -1,3 +1,4 @@
+import copy
 import inspect
 import math
 import random
@@ -94,6 +95,28 @@ class SimpleGA(GeneticAlgorithm):
         )
         self.population = None
         self.best_individuals = []
+
+    def clone(self):
+        ga = super().clone()
+        # Copying all the numeric values
+        ga.population_size = self.population_size
+        ga.offspring_size = self.offspring_size
+        ga.replacement_rate = self.replacement_rate
+        ga.p_recombination = self.p_recombination
+        ga.p_mutation = self.p_mutation
+        ga.selection_size = self.selection_size
+        # Deep copying the objects (just in case they're maintaining any state
+        ga.spawning_pool = copy.deepcopy(self.spawning_pool)
+        ga.fitness = copy.deepcopy(self.fitness)
+        ga.selection = copy.deepcopy(self.selection)
+        ga.recombination = copy.deepcopy(self.recombination)
+        ga.mutation = copy.deepcopy(self.mutation)
+        ga.diversity = copy.deepcopy(self.diversity)
+        ga.replacement = copy.deepcopy(self.replacement)
+        ga.population = copy.deepcopy(self.population)
+        ga.best_individuals = copy.deepcopy(self.best_individuals)
+
+        return ga
 
     def initialize(self):
         super().initialize()

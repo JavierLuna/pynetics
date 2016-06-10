@@ -2,10 +2,179 @@ import pickle
 import unittest
 
 from tempfile import TemporaryFile
+from unittest.mock import MagicMock
 
-from pynetics import PyneticsError
+from pynetics import PyneticsError, GeneticAlgorithm, StopCondition
 from pynetics.exceptions import InvalidSize
 from test import utils
+
+
+class MockGeneticAlgorithm(GeneticAlgorithm):
+    def clone(self):
+        return super().clone()
+
+    def step(self):
+        pass
+
+    def best(self, generation=None):
+        return True
+
+
+class MockStopCondition(StopCondition):
+    def __call__(self, genetic_algorithm):
+        return True
+
+
+class GeneticAlgorithmTestCase(unittest.TestCase):
+    """ Tests for the GeneticAlgorithm super class. """
+
+    def setUp(self):
+        self.default_stop_condition = MockStopCondition()
+
+    def test_instances_are_correctly_constructed(self):
+        ga = MockGeneticAlgorithm(self.default_stop_condition)
+
+        self.assertEquals(ga.stop_condition, self.default_stop_condition)
+        self.assertEquals(ga.listeners, {})
+        self.assertEquals(ga.generation, 0)
+
+    def test_fluent_start_algorithm_clones_genetic_algorithm(self):
+        ga_1 = MockGeneticAlgorithm(self.default_stop_condition)
+        ga_2 = ga_1.on_start(lambda ga: print(ga.generation))
+
+        self.assertIsNot(ga_1, ga_2)
+
+    def test_fluent_end_algorithm_clones_genetic_algorithm(self):
+        ga_1 = MockGeneticAlgorithm(self.default_stop_condition)
+        ga_2 = ga_1.on_end(lambda ga: print(ga.generation))
+
+        self.assertIsNot(ga_1, ga_2)
+
+    def test_fluent_start_step_clones_genetic_algorithm(self):
+        ga_1 = MockGeneticAlgorithm(self.default_stop_condition)
+        ga_2 = ga_1.on_step_start(lambda ga: print(ga.generation))
+
+        self.assertIsNot(ga_1, ga_2)
+
+    def test_fluent_end_step_clones_genetic_algorithm(self):
+        ga_1 = MockGeneticAlgorithm(self.default_stop_condition)
+        ga_2 = ga_1.on_step_end(lambda ga: print(ga.generation))
+
+        self.assertIsNot(ga_1, ga_2)
+
+
+'''
+    def run(self):
+        """ Runs the simulation.
+
+        The process is as follows: initialize populations and, while the stop
+        condition is not met, do a new evolve step. This process relies in the
+        abstract method "step".
+        """
+        self.initialize()
+        self.call_listeners(GeneticAlgorithm.ALGORITHM_START)
+        while self.best() is None or not self.stop_condition(self):
+            self.call_listeners(GeneticAlgorithm.STEP_START)
+            self.step()
+            self.generation += 1
+            self.call_listeners(GeneticAlgorithm.STEP_END)
+        self.call_listeners(GeneticAlgorithm.ALGORITHM_END)
+        self.finish()
+
+    def call_listeners(self, message):
+        [f(self) for f in self.listeners[message]]
+
+    def initialize(self):
+        """ Called when starting the genetic algorithm to initialize it. """
+        self.generation = 0
+
+    @staticmethod
+    def finish():
+        """ Called one the algorithm has finished. """
+        pass
+
+    @abstractmethod
+    def step(self):
+        """ Called on every iteration of the algorithm. """
+
+    @abstractmethod
+    def best(self, generation=None):
+        """ Returns the best individual obtained until this moment.
+
+        :param generation: The generation of the individual that we want to
+            recover. If not set, this will be the one emerged in the last
+            generation. Defaults to None (not set, thus last generation).
+        :return: The best individual generated in the specified generation.
+        """
+
+    @abstractmethod
+    def clone(self):
+        """ Creates an instance as an exact copy of this algorithm.
+
+        The implementing subclass must override this method calling the super
+        class method because it has some attributes also to be cloned.
+
+        :return: An exact copy of this genetic algorithm.
+        """
+        ga = clone_empty(self)
+        ga.stop_condition = self.stop_condition
+        ga.listeners = self.listeners
+        ga.generation = self.generation
+        return ga
+
+    def on_start(self, f):
+        """ Specifies a functor to be called when the algorithm starts.
+
+        This function will be called AFTER initialization but BEFORE the first
+        iteration, including the check against the stop condition.
+
+        :param f: The functor to be called. It must accept a GeneticAlgorithm
+            instance as a parameter.
+        """
+        ga = self.clone()
+        ga.listeners[GeneticAlgorithm.ALGORITHM_START].append(f)
+        return ga
+
+    def on_end(self, f):
+        """ Specifies a functor to be called when the algorithm ends.
+
+        Particularly, this method will be called AFTER the stop condition
+        has been met.
+
+        :param f: The functor to be called. It must accept a GeneticAlgorithm
+            instance as a parameter.
+        """
+        ga = self.clone()
+        ga.listeners[GeneticAlgorithm.ALGORITHM_END].append(f)
+        return ga
+
+    def on_step_start(self, f):
+        """ Specifies a functor to be called when an iteration step starts.
+
+        This method will be called AFTER the stop condition has been checked
+        and proved to be false) and BEFORE the new step is computed.
+
+        :param f: The functor to be called. It must accept a GeneticAlgorithm
+            instance as a parameter.
+        """
+        ga = self.clone()
+        ga.listeners[GeneticAlgorithm.STEP_START].append(f)
+        return ga
+
+    def on_step_end(self, f):
+        """ Specifies a functor to be called when an iteration ends.
+
+        This method will be called AFTER an step of the algorithm has been
+        computed and BEFORE a new check against the stop condition is going
+        to be made.
+
+        :param f: The functor to be called. It must accept a GeneticAlgorithm
+            instance as a parameter.
+        """
+        ga = self.clone()
+        ga.listeners[GeneticAlgorithm.STEP_END].append(f)
+        return ga
+'''
 
 
 class StopConditionTestCase(unittest.TestCase):

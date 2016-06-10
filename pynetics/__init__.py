@@ -52,7 +52,8 @@ class GeneticAlgorithm(metaclass=ABCMeta):
         """ Called when starting the genetic algorithm to initialize it. """
         self.generation = 0
 
-    def finish(self):
+    @staticmethod
+    def finish():
         """ Called one the algorithm has finished. """
         pass
 
@@ -70,6 +71,21 @@ class GeneticAlgorithm(metaclass=ABCMeta):
         :return: The best individual generated in the specified generation.
         """
 
+    @abstractmethod
+    def clone(self):
+        """ Creates an instance as an exact copy of this algorithm.
+
+        The implementing subclass must override this method calling the super
+        class method because it has some attributes also to be cloned.
+
+        :return: An exact copy of this genetic algorithm.
+        """
+        ga = clone_empty(self)
+        ga.stop_condition = self.stop_condition
+        ga.listeners = self.listeners
+        ga.generation = self.generation
+        return ga
+
     def on_start(self, f):
         """ Specifies a functor to be called when the algorithm starts.
 
@@ -79,8 +95,9 @@ class GeneticAlgorithm(metaclass=ABCMeta):
         :param f: The functor to be called. It must accept a GeneticAlgorithm
             instance as a parameter.
         """
-        self.listeners[GeneticAlgorithm.ALGORITHM_START].append(f)
-        return self
+        ga = self.clone()
+        ga.listeners[GeneticAlgorithm.ALGORITHM_START].append(f)
+        return ga
 
     def on_end(self, f):
         """ Specifies a functor to be called when the algorithm ends.
@@ -91,8 +108,9 @@ class GeneticAlgorithm(metaclass=ABCMeta):
         :param f: The functor to be called. It must accept a GeneticAlgorithm
             instance as a parameter.
         """
-        self.listeners[GeneticAlgorithm.ALGORITHM_END].append(f)
-        return self
+        ga = self.clone()
+        ga.listeners[GeneticAlgorithm.ALGORITHM_END].append(f)
+        return ga
 
     def on_step_start(self, f):
         """ Specifies a functor to be called when an iteration step starts.
@@ -103,8 +121,9 @@ class GeneticAlgorithm(metaclass=ABCMeta):
         :param f: The functor to be called. It must accept a GeneticAlgorithm
             instance as a parameter.
         """
-        self.listeners[GeneticAlgorithm.STEP_START].append(f)
-        return self
+        ga = self.clone()
+        ga.listeners[GeneticAlgorithm.STEP_START].append(f)
+        return ga
 
     def on_step_end(self, f):
         """ Specifies a functor to be called when an iteration ends.
@@ -116,8 +135,9 @@ class GeneticAlgorithm(metaclass=ABCMeta):
         :param f: The functor to be called. It must accept a GeneticAlgorithm
             instance as a parameter.
         """
-        self.listeners[GeneticAlgorithm.STEP_END].append(f)
-        return self
+        ga = self.clone()
+        ga.listeners[GeneticAlgorithm.STEP_END].append(f)
+        return ga
 
 
 class StopCondition(metaclass=ABCMeta):
@@ -173,11 +193,10 @@ class Individual(metaclass=ABCMeta):
 
     @abstractmethod
     def clone(self):
-        """ Creates an instance as an exact copy of this individual
+        """ Creates an instance as an exact copy of this individual.
 
-        If the implementing subclass has internal attributes to be cloned, the
-        attributes copy should be implemented in an overriden version of this
-        method.
+        The implementing subclass must override this method calling the super
+        class method because it has some attributes also to be cloned.
 
         :return: A brand new individual like this one.
         """
