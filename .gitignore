@@ -63,3 +63,4 @@ target/
 .DS_Store
 
 # Jupyter notebook stuff
+.ipynb_checkpoints
