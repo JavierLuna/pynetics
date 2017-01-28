@@ -1,4 +1,6 @@
-from pynetics import Replacement
+from typing import Sequence
+
+from . import Population, Individual, Replacement
 
 
 class LowElitism(Replacement):
@@ -8,18 +10,25 @@ class LowElitism(Replacement):
     the offspring. This makes this operator elitist, but at least not much.
     Moreover, if offspring size equals to the population size then it's a full
     replacement (i.e. a generational scheme).
+
+    This method guarantees that the population size remains unchanged after the
+    replacement.
     """
 
-    def __call__(self, population, individuals):
+    def perform(
+            self, *,
+            population: Population,
+            offspring: Sequence[Individual]
+    ):
         """ Removes less fit individuals and then inserts the offspring.
 
         :param population: The population where make the replacement.
-        :param individuals: The new population to use as replacement.
+        :param offspring: The new population to use as replacement.
         """
-        if individuals:
+        if offspring:
             population.sort()
-            del population[-len(individuals):]
-            population.extend(individuals)
+            del population[-len(offspring):]
+            population.extend(offspring)
 
 
 class HighElitism(Replacement):
@@ -30,15 +39,22 @@ class HighElitism(Replacement):
     highly elitist but if length os population and offspring are the same, the
     process will result in a full replacement, i.e. a generational scheme of
     replacement.
+
+    This method guarantees that the population size remains unchanged after the
+    replacement.
     """
 
-    def __call__(self, population, indviduals):
+    def perform(
+            self, *,
+            population: Population,
+            offspring: Sequence[Individual]
+    ):
         """ Inserts the offspring in the population and removes the less fit.
 
         :param population: The population where make the replacement.
-        :param indviduals: The new population to use as replacement.
+        :param offspring: The new population to use as replacement.
         """
-        if indviduals:
+        if offspring:
+            population.extend(offspring)
             population.sort()
-            population.extend(indviduals)
-            del population[-len(indviduals):]
+            del population[-len(offspring):]

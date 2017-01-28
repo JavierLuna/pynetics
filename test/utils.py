@@ -1,33 +1,54 @@
 from random import choice
 
 from pynetics import StopCondition, Individual, SpawningPool, Fitness, Mutation, \
-    Recombination, Replacement, Selection, Population
+    Recombination, Replacement, Selection, Population, Diversity
 from pynetics.ga_list import Alleles
+
+
+class DummyIndividual(Individual):
+    def __init__(self, name):
+        super().__init__()
+        self.name = name
+
+    def phenotype(self):
+        return self.name
+
+    def clone(self) -> 'Individual':
+        new_i = super().clone()
+        new_i.name = self.name
+        return new_i
+
+
+class ConstantFitness(Fitness):
+    def __init__(self, fitness):
+        super().__init__()
+        self.fitness = fitness
+
+    def __call__(self, individual: 'Individual') -> float:
+        return self.fitness
+
+
+class ConstantDiversity(Diversity):
+    def __init__(self, diversity):
+        super().__init__()
+        self.diversity = diversity
+
+    def __call__(self, individuals):
+        return self.diversity
+
+
+class DummySpawningPool(SpawningPool):
+    def __init__(self, fitness, name):
+        super().__init__(fitness)
+        self.name = name
+
+    def create(self):
+        return DummyIndividual(self.name)
 
 
 class DummyStopCondition(StopCondition):
     def __call__(self, genetic_algorithm):
         return True
-
-
-class DummyIndividual(Individual):
-    def phenotype(self):
-        return 'DummyIndividual'
-
-    def clone(self):
-        individual = type(self)()
-        individual.__dict__.update(self.__dict__)
-        return individual
-
-
-class DummySpawningPool(SpawningPool):
-    def create(self):
-        return DummyIndividual()
-
-
-class DummyFitness(Fitness):
-    def __call__(self, individual):
-        return 0.5
 
 
 class DummyMutation(Mutation):
@@ -69,7 +90,7 @@ class DummyPopulation(Population):
         )
 
 
-def individuals(n, fitness_method=DummyFitness()):
+def individuals(n, fitness_method=ConstantFitness(0.5)):
     result = []
     for i in range(n):
         individual = DummyIndividual()
