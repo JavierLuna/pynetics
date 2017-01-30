@@ -1,7 +1,7 @@
 from random import choice
 
 from pynetics import StopCondition, Individual, SpawningPool, Fitness, Mutation, \
-    Recombination, Replacement, Selection, Population, Diversity
+    Recombination, Replacement, Selection, Diversity
 from pynetics.ga_list import Alleles
 
 
@@ -79,15 +79,6 @@ class DummyCatastrophe(Selection):
 class DummyAlleles(Alleles):
     def get(self):
         return choice(('D', 'U', 'M', 'M', 'Y'))
-
-
-class DummyPopulation(Population):
-    def __init__(self, size, spawning_pool=None, individuals=None):
-        super().__init__(
-            size=size,
-            spawning_pool=spawning_pool or DummySpawningPool(),
-            individuals=individuals or [],
-        )
 
 
 def individuals(n, fitness_method=ConstantFitness(0.5)):

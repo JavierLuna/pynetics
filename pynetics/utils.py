@@ -1,4 +1,5 @@
 import random
+from typing import TypeVar
 
 
 def take_chances(probability=0.5):
@@ -12,7 +13,10 @@ def take_chances(probability=0.5):
     return random.random() < probability
 
 
-def clone_empty(obj):
+T = TypeVar('T')
+
+
+def clone_empty(obj: T) -> T:
     """ Used by classes which need to be cloned avoiding the call to __init__.
 
     :param obj: The object to be cloned.
@@ -22,6 +26,6 @@ def clone_empty(obj):
     class Empty(obj.__class__):
         def __init__(self): pass
 
-    empty = Empty()
+    empty: T = Empty()
     empty.__class__ = obj.__class__
     return empty

@@ -520,16 +520,16 @@ class Selection(metaclass=ABCMeta):
     """
 
     def __call__(
-            self,
-            individuals: Sequence['Individual'],
-            n: int
-    ) -> Sequence['Individual']:
+            self, *,
+            population: Population,
+            n: int = 1
+    ) -> Sequence[Individual]:
         """ Makes some checks to the configuration before delegating selection.
 
         After checking the parameters, the selection is performed by perform
         method.
 
-        :param individuals: The sequence of individuals from which select the
+        :param population: The sequence of individuals from which select the
             individuals.
         :param n: The number of individuals to return.
         :return: A sequence of individuals.
@@ -538,21 +538,21 @@ class Selection(metaclass=ABCMeta):
             to False (i.e. the same Individual cannot be selected twice or more
             times).
         """
-        num_individuals = len(individuals)
-        if num_individuals < n:
-            raise InvalidSizeError(f'<= {num_individuals}', n)
+        num_individuals = len(population)
+        if not 0 < n <= num_individuals:
+            raise InvalidSizeError(f'0 < n <= {num_individuals}', n)
         else:
-            return self.perform(individuals, n)
+            return self.perform(population=population, n=n)
 
     @abstractmethod
     def perform(
-            self,
-            individuals: Sequence['Individual'],
+            self, *,
+            population: Population,
             n: int
-    ) -> Sequence['Individual']:
+    ) -> Sequence[Individual]:
         """ It makes the selection according to the subclass implementation.
 
-        :param individuals: A sequence of individuals from which select some.
+        :param population: A sequence of individuals from which select some.
         :param n: The number of individuals to return.
         :return: A sequence of $n$ individuals.
         """

@@ -5,7 +5,7 @@ from tempfile import TemporaryFile
 from unittest.mock import MagicMock
 
 from pynetics import PyneticsError, GeneticAlgorithm, StopCondition
-from pynetics.exceptions import InvalidSize
+from pynetics.exceptions import InvalidSizeError
 from test import utils
 
 
@@ -214,7 +214,7 @@ class TestPopulation(unittest.TestCase):
 
     def test_cannot_initialize_a_population_of_size_0_or_less(self):
         for size in (-100, -10, -1, 0):
-            with self.assertRaises(InvalidSize):
+            with self.assertRaises(InvalidSizeError):
                 utils.DummyPopulation(size=size)
 
     def test_population_maintain_size_at_initialization_time(self):

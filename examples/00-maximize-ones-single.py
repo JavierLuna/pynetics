@@ -1,5 +1,4 @@
-import time
-
+from pynetics import Individual, SpawningPool
 from pynetics.algorithms import SimpleGA
 from pynetics.ga_bin import BinaryIndividualSpawningPool, AllGenesCanSwitch, \
     AverageHamming
@@ -14,8 +13,16 @@ replacement_rate = 0.9
 individual_size = 100
 
 
-def maximize_ones_fitness(individual):
-    return 1. / (1. + (len(individual) - sum(individual)))
+class BinaryIndividual(Individual):
+    def clone(self) -> 'Individual':
+        pass
+
+    def phenotype(self) -> Any:
+        pass
+
+    def fitness(self):
+        return 1. / (1. + (len(self) - sum(self)))
+
 
 if __name__ == '__main__':
     ga = SimpleGA(

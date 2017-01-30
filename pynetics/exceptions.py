@@ -3,7 +3,7 @@ class PyneticsError(Exception):
     pass
 
 
-class InvalidSize(PyneticsError):
+class InvalidSizeError(PyneticsError):
     """ Raised when an instance is not of the expected class. """
 
     def __init__(self, expected, current):
@@ -15,17 +15,24 @@ class InvalidSize(PyneticsError):
         super().__init__('Expected {} but got {}'.format(expected, current))
 
 
+class RequiredValueError(PyneticsError):
+    """ A value is required. """
+
+    def __init__(self, name: str):
+        super().__init__(f'Value {name} is required')
+
+
 class WrongValueForInterval(ValueError):
     """ When a value does not belong to an interval. """
 
     def __init__(
-        self,
-        var_name,
-        lower,
-        upper,
-        value,
-        inc_lower=True,
-        inc_upper=True,
+            self,
+            var_name,
+            lower,
+            upper,
+            value,
+            inc_lower=True,
+            inc_upper=True,
     ):
         """ Initializes the exception.
 

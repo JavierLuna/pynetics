@@ -1,61 +1,69 @@
 import pickle
+from abc import ABCMeta
+from tempfile import TemporaryFile
 from unittest import TestCase
 
-from tempfile import TemporaryFile
+from pynetics import Population
+from pynetics.exceptions import InvalidSizeError
+from pynetics.selections import BestIndividual
+from test.utils import ConstantDiversity, DummySpawningPool, ConstantFitness
 
-from pynetics import PyneticsError
-from pynetics.selections import BestIndividual, Tournament
-from test import utils
+
+class SelectionTestCase(TestCase, metaclass=ABCMeta):
+    """ Common configuration for all selection operator tests. """
+
+    def setUp(self):
+        self.sp_04 = DummySpawningPool(
+            fitness=ConstantFitness(0.4),
+            name='test1_0.4',
+        )
 
 
-class BestIndividualTestCase(TestCase):
+class BestIndividualTestCase(SelectionTestCase):
     """ Tests for BestIndividual selection method. """
+
+    def setUp(self):
+        super().setUp()
+        self.selection = BestIndividual()
 
     def test_class_is_pickeable(self):
-        """ Checks if it's pickeable by writing it into a temporary file. """
         with TemporaryFile() as f:
-            pickle.dump(BestIndividual(), f)
+            pickle.dump(self.selection, f)
 
     def test_when_population_size_is_lower_than_selection_size(self):
-        """ Cannot select more individuals than population size. """
         p_size = 10
-        population = utils.DummyPopulation(size=p_size)
+        population = Population(
+            size=p_size,
+            spawning_pool=self.sp_04,
+            diversity=ConstantDiversity(0.5),
+        )
 
-        with self.assertRaises(PyneticsError):
-            BestIndividual()(population, p_size * 2)
+        with self.assertRaises(InvalidSizeError):
+            self.selection(population=population, n=p_size * 2)
 
     def test_when_population_size_is_equals_to_selection_size(self):
-        """ All the population is returned. """
-        p_size = 10
-        individuals = utils.individuals(p_size)
-        population = utils.DummyPopulation(size=p_size, individuals=individuals)
-        selected_individuals = BestIndividual()(population, p_size)
-        self.assertEquals(len(selected_individuals), len(population))
+        p_size = 3
+
+        population = Population(
+            size=p_size,
+            spawning_pool=self.sp_04,
+            diversity=ConstantDiversity(0.5),
+        )
+        selected = self.selection(population=population, n=p_size)
+        for i in population:
+            self.assertIn(i, selected)
 
     def test_when_population_size_is_bigger_than_selection_size(self):
-        """ The best individuals are returned. """
-        p_size = 10
-        selection_size = int(p_size / 2)
-        population = utils.DummyPopulation(size=p_size)
-        individuals = BestIndividual()(population, selection_size)
-        self.assertEquals(len(individuals), selection_size)
-        for i in range(len(individuals)):
-            self.assertEquals(individuals[i], population[i])
+        p_size = 3
 
-
-class TournamentTestCase(TestCase):
-    """ Tests for BestIndividual selection method. """
-
-    @staticmethod
-    def test_class_is_pickeable():
-        """ Checks if it's pickeable by writing it into a temporary file. """
-        with TemporaryFile() as f:
-            pickle.dump(Tournament(sample_size=5), f)
-
-    def test_when_population_size_is_lower_than_selection_size(self):
-        """ Cannot select more individuals than population size. """
-        p_size = 10
-        population = utils.DummyPopulation(size=p_size)
-
-        with self.assertRaises(PyneticsError):
-            Tournament(sample_size=int(p_size / 2))(population, p_size * 2)
+        population = Population(
+            size=p_size,
+            spawning_pool=self.sp_04,
+            diversity=ConstantDiversity(0.5),
+        )
+        selected = self.selection(population=population, n=p_size - 1)
+        for i in selected:
+            self.assertIn(i, population)
+        for i in range(len(selected)):
+            for j in range(i + 1, len(selected)):
+                self.assertFalse(selected[i] is selected[j])

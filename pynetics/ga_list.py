@@ -1,5 +1,7 @@
 import random
 from abc import ABCMeta, abstractmethod
+from collections import MutableSequence
+from typing import Any, Tuple
 
 from pynetics import SpawningPool, Individual, Recombination, \
     take_chances, Mutation, Diversity
@@ -25,11 +27,11 @@ class FiniteSetAlleles(Alleles):
 
         :param symbols: The sequence of symbols.
         """
-        self.symbols = set(symbols)
+        self.symbols = tuple(set(symbols))
 
     def get(self):
         """ A random value is selected uniformly over the set of values. """
-        return random.choice(tuple(self.symbols))
+        return random.choice(self.symbols)
 
 
 class ListIndividualsWithFiniteSetAllelesDiversity(Diversity):
@@ -82,11 +84,35 @@ class ListIndividualSpawningPool(SpawningPool):
         return individual
 
 
-# Maybe instead inherit from list is better inherit from mutablesequence
-class ListIndividual(Individual, list):
+class ListIndividual(Individual, MutableSequence, metaclass=ABCMeta):
     """ An individual whose representation is a list of finite values. """
 
-    def __eq__(self, individual):
+    def __init__(self):
+        """ Initializes the object. """
+        super().__init__()
+        self.genes = []
+
+    def insert(self, index: int, value: Any):
+        """ Inserts a gene in the specified position. """
+        self.genes.index(index, value)
+
+    def __delitem__(self, index):
+        """ Removes a gene from the specified position"""
+        self.genes.__delitem__(index)
+
+    def __len__(self):
+        """ Returns the number of genes this individual has. """
+        return len(self.genes)
+
+    def __getitem__(self, index) -> Any:
+        """ Returns the gene on the specified position. """
+        return self.genes.__getitem__(index)
+
+    def __setitem__(self, index, value):
+        """ Replaces the gene on the specified position with the value. """
+        self.genes.__setitem__(index, value)
+
+    def __eq__(self, individual) -> bool:
         """ The equality between two list individuals is True if they:
 
         1. Have the same length
@@ -96,22 +122,21 @@ class ListIndividual(Individual, list):
             [x == y for (x, y) in zip(self, individual)]
         )
 
-    def phenotype(self):
+    def phenotype(self) -> Tuple[Any]:
         """ A default phenotype for this kind of invdividuals.
 
         :return: A list where each of the elements is the string representation
             of each of the genes.
         """
-        return [str(g) for g in self]
+        return (str(g) for g in self.genes)
 
-    def clone(self):
+    def clone(self) -> 'ListIndividual':
         """ Clones this ListIndividual.
 
         :return: A ListIndividual looking exactly like this.
         """
-        individual = super().clone()
-        for gene in self:
-            individual.append(gene)
+        individual: 'ListIndividual' = super().clone()
+        individual.genes = [gene for gene in self.genes]
         return individual
 
 
