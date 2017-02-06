@@ -38,8 +38,21 @@ class ProportionalToFitness(Selection):
         :param population: The population from which select the population.
         :return: A list of n population.
         """
-        # TODO Implement
-        raise NotImplementedError()
+        individual_and_fitness_dict = {
+            individual: individual.fitness()
+            for individual in population
+        }
+        max = sum(fitness for fitness in individual_and_fitness_dict.values())
+        selection = []
+        while len(selection) < n:
+            f = random.uniform(0, max)
+            current = 0
+            for individual, fitness in individual_and_fitness_dict.items():
+                current += fitness
+                if current > f:
+                    selection.append(individual)
+                    break
+        return selection
 
 
 class ProportionalToPosition(Selection):
