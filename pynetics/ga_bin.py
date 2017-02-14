@@ -1,9 +1,47 @@
 import random
 from array import array
+from typing import Callable
 
 from pynetics import Individual, Mutation, take_chances, Diversity
 from pynetics.ga_list import ListRecombination, ListIndividualSpawningPool, \
     FiniteSetAlleles
+
+
+class BinaryIndividual(Individual):
+    """ An individual represented by a binary chromosome. """
+
+    def fitness(self) -> float:
+        pass
+
+    def __init__(self):
+        super().__init__()
+        self.genes = []
+
+    def __getitem__(self, index):
+        return self.genes[index]
+
+    def __delitem__(self, index):
+        return self.genes.remove(index)
+
+    def insert(self, index, value):
+        self.genes.insert(index, value)
+
+    def __setitem__(self, index, value):
+        self.genes[index] = value
+
+    def __len__(self):
+        return len(self.genes)
+
+    def phenotype(self):
+        return self.genes
+
+    def clone(self):
+        clone = super().clone()
+        clone.genes = self.genes[:]
+        return clone
+
+    def __str__(self):
+        return ''.join(str(b) for b in self.genes)
 
 
 class BinaryAlleles(FiniteSetAlleles):
@@ -16,16 +54,18 @@ class BinaryAlleles(FiniteSetAlleles):
 class BinaryIndividualSpawningPool(ListIndividualSpawningPool):
     """ Defines the methods for creating binary individuals. """
 
-    def __init__(self, size: int):
+    def __init__(self, fitness: Callable[[Individual], float], size: int):
         """ Initializes this spawning pool for generating binary individuals.
 
+        :param fitness: The fitness the individuals will have in order to be
+            evaluated.
         :param size: The size of the individuals to be created from
             this spawning pool.
         """
-        super().__init__()
+        super().__init__(fitness=fitness)
         self.individual_size = size
 
-    def create(self) -> 'BinaryIndividual':
+    def create(self) -> BinaryIndividual:
         individual = BinaryIndividual()
         individual.genes = array('B', [
             random.getrandbits(1)
@@ -82,43 +122,6 @@ class AverageHamming(Diversity):
             if g1 != g2:
                 hamming += 1
         return hamming
-
-
-class BinaryIndividual(Individual):
-    """ An individual represented by a binary chromosome. """
-
-    def fitness(self) -> float:
-        pass
-
-    def __init__(self):
-        super().__init__()
-        self.genes = []
-
-    def __getitem__(self, index):
-        return self.genes[index]
-
-    def __delitem__(self, index):
-        return self.genes.remove(index)
-
-    def insert(self, index, value):
-        self.genes.insert(index, value)
-
-    def __setitem__(self, index, value):
-        self.genes[index] = value
-
-    def __len__(self):
-        return len(self.genes)
-
-    def phenotype(self):
-        return self.genes
-
-    def clone(self):
-        clone = super().clone()
-        clone.genes = self.genes[:]
-        return clone
-
-    def __str__(self):
-        return ''.join(str(b) for b in self.genes)
 
 
 class GeneralizedRecombination(ListRecombination):

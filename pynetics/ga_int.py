@@ -1,13 +1,21 @@
 import random
+from typing import Callable
 
-from pynetics import ga_list
-from pynetics.ga_list import ListIndividualSpawningPool, ListRecombination
+from pynetics import ga_list, Individual
+from pynetics.ga_list import ListIndividualSpawningPool, ListRecombination, \
+    FiniteSetAlleles
 
 
 class IntegerIndividualSpawningPool(ListIndividualSpawningPool):
     """ Defines the methods for creating integer individuals. """
 
-    def __init__(self, size, lower, upper):
+    def __init__(
+            self,
+            fitness: Callable[[Individual], float],
+            size: int,
+            lower: int,
+            upper: int
+    ):
         """ Initializes this spawning pool for generating list individuals.
 
         :param size: The size of the individuals to be created from this
@@ -15,9 +23,11 @@ class IntegerIndividualSpawningPool(ListIndividualSpawningPool):
         :param lower: the lower bound of the integer set (included).
         :param upper: the upper bound of the integer set (included).
         """
+
         super().__init__(
+            fitness=fitness,
             size=size,
-            alleles=ga_list.FiniteSetAlleles(range(lower, upper + 1)),
+            alleles=FiniteSetAlleles(range(lower, upper + 1)),
         )
         self.lower = lower
         self.upper = upper

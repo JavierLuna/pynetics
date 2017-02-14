@@ -184,7 +184,7 @@ class Individual(metaclass=ABCMeta):
 
     def __init__(self):
         """ Initializes the individual. """
-        # TODO Implement a cache and give the option to disable it.
+        # TODO Implement an optional fitness cache
         self.population: Population = None
         self.f_method: Callable[['Individual'], float] = None
 
@@ -222,6 +222,7 @@ class Individual(metaclass=ABCMeta):
         """
         individual = clone_empty(self)
         individual.population = self.population
+        individual.f_method = self.f_method
         return individual
 
 
@@ -244,7 +245,10 @@ class Diversity:
 class SpawningPool(metaclass=ABCMeta):
     """ Defines the methods for creating individuals required by population. """
 
-    def __init__(self, fitness: Callable[['Individual'], float]):
+    def __init__(
+            self,
+            fitness: Callable[[Individual], float]
+    ):
         """ Initializes the object.
 
         :param fitness: The fitness the individuals will have in order to be
@@ -252,7 +256,7 @@ class SpawningPool(metaclass=ABCMeta):
         """
         self.fitness = fitness
 
-    def spawn(self) -> 'Individual':
+    def spawn(self) -> Individual:
         """ Returns a new random individual.
 
         It uses the abstract method "create" to be implemented with the logic
@@ -266,7 +270,7 @@ class SpawningPool(metaclass=ABCMeta):
         return individual
 
     @abstractmethod
-    def create(self) -> 'Individual':
+    def create(self) -> Individual:
         """ Creates a new individual randomly.
 
         :return: A new Individual object.

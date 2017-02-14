@@ -1,7 +1,7 @@
 import random
 from abc import ABCMeta, abstractmethod
 from collections import MutableSequence
-from typing import Any, Tuple
+from typing import Any, Tuple, Iterable, TypeVar, Callable
 
 from pynetics import SpawningPool, Individual, Recombination, \
     take_chances, Mutation, Diversity
@@ -15,10 +15,13 @@ class Alleles(metaclass=ABCMeta):
         """ Returns a random value of all the possible existent values. """
 
 
+T = TypeVar('T')
+
+
 class FiniteSetAlleles(Alleles):
     """ The possible alleles belong to a finite set of symbols. """
 
-    def __init__(self, symbols):
+    def __init__(self, symbols: Iterable['T']):
         """ Initializes this set of alleles with its sequence of symbols.
 
         The duplicated values are removed in the list maintained by this alleles
@@ -29,7 +32,7 @@ class FiniteSetAlleles(Alleles):
         """
         self.symbols = tuple(set(symbols))
 
-    def get(self):
+    def get(self) -> T:
         """ A random value is selected uniformly over the set of values. """
         return random.choice(self.symbols)
 
@@ -38,14 +41,14 @@ class ListIndividualsWithFiniteSetAllelesDiversity(Diversity):
     """ Computes the diversity in a set of BinaryIndividual instances. """
 
     def __call__(self, individuals):
-        """ Returns a value repersenting the diversity of the individuals.
+        """ Returns a value representing the diversity of the individuals.
 
         The value is computed as follows. For each gene position, a value of M
         (the number of different appearing alleles) is computed. Then, all the
         values are added and the divided by the Y = N * L where L is the length
         of the individual and N the number of possible alleles. The value then
         is expected to belong to the interval [0, 1], where 0 is no diversity at
-        all and 1 a completly diverse population.
+        all and 1 a completely diverse population.
 
         :param individuals: A sequence of individuals from which obtain the
             diversity.
@@ -62,18 +65,25 @@ class ListIndividualsWithFiniteSetAllelesDiversity(Diversity):
 class ListIndividualSpawningPool(SpawningPool):
     """ Defines the methods for creating individuals required by population. """
 
-    def __init__(self, size, alleles):
+    def __init__(
+            self,
+            fitness: Callable[[Individual], float],
+            size: int,
+            alleles: Alleles
+    ):
         """ Initializes this spawning pool for generating list individuals.
 
+        :param fitness: The fitness the individuals will have in order to be
+            evaluated.
         :param size: The size of the individuals to be created from this
             spawning pool.
         :param alleles: The alleles to be used as values of the genes.
         """
-        super().__init__()
+        super().__init__(fitness=fitness)
         self.size = size
         self.alleles = alleles
 
-    def create(self):
+    def create(self) -> ListIndividual:
         """ Creates a new individual randomly.
 
         :return: A new Individual object.

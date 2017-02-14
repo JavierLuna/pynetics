@@ -2,7 +2,7 @@ import random
 from typing import TypeVar
 
 
-def take_chances(probability=0.5):
+def take_chances(probability: float = 0.5) -> bool:
     """ Given a probability, the method generates a random value to see if is
         lower or not than that probability.
 

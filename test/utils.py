@@ -37,15 +37,6 @@ class ConstantDiversity(Diversity):
         return self.diversity
 
 
-class DummySpawningPool(SpawningPool):
-    def __init__(self, fitness, name):
-        super().__init__(fitness)
-        self.name = name
-
-    def create(self):
-        return DummyIndividual(self.name)
-
-
 class DummyStopCondition(StopCondition):
     def __call__(self, genetic_algorithm):
         return True

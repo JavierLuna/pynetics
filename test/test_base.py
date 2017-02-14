@@ -1,12 +1,19 @@
 import pickle
 import unittest
-
 from tempfile import TemporaryFile
-from unittest.mock import MagicMock
 
 from pynetics import PyneticsError, GeneticAlgorithm, StopCondition
 from pynetics.exceptions import InvalidSizeError
 from test import utils
+
+
+class IndividualTestCase(unittest.TestCase):
+    """ Tests for Individual instances. """
+
+    def test_class_is_pickeable(self):
+        """ Checks the individual by writing it in a temporary file. """
+        with TemporaryFile() as f:
+            pickle.dump(utils.DummyIndividual(), f)
 
 
 class MockGeneticAlgorithm(GeneticAlgorithm):
@@ -184,15 +191,6 @@ class StopConditionTestCase(unittest.TestCase):
         """ Checks the individual by writing it in a temporary file. """
         with TemporaryFile() as f:
             pickle.dump(utils.DummyStopCondition(), f)
-
-
-class IndividualTestCase(unittest.TestCase):
-    """ Tests for Individual instances. """
-
-    def test_class_is_pickeable(self):
-        """ Checks the individual by writing it in a temporary file. """
-        with TemporaryFile() as f:
-            pickle.dump(utils.DummyIndividual(), f)
 
 
 class SpawningPoolTestCase(unittest.TestCase):
