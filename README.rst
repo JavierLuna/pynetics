@@ -2,6 +2,8 @@
 Pynetics
 ========
 .. image:: https://img.shields.io/badge/pypi-0.4.1-blue.svg
+.. image:: https://img.shields.io/badge/python-3.5%2C%203.6%2C%203.7-brightgreen.svg
+.. image:: https://travis-ci.org/JavierLuna/pynetics.svg?branch=develop
 
 ***********************************************
 An evolutionary computation library for Python.
