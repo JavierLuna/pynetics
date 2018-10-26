@@ -13,7 +13,7 @@ setuptools.setup(
     install_requires=[],
     author_email='alberto.da@gmail.com',
     description='An evolutionary computation library for Python',
-    long_description=open('README.rst').read(),
+    long_description=open('README.md').read(),
     packages=['pynetics', 'pynetics.gggp', ],
     include_package_data=True,
     platforms='any',
