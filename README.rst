@@ -1,6 +1,7 @@
 ========
 Pynetics
 ========
+.. image:: https://img.shields.io/badge/pypi-0.4.1-blue.svg
 
 ***********************************************
 An evolutionary computation library for Python.
