@@ -4,10 +4,17 @@ tests:
 	python -m unittest discover test/
 
 clean:
-	rm -rf .cache/
-	rm -rf *.egg-info
-	rm -rf build/
-	rm -rf dist/
+	-rm -rf .cache/
+	-rm -rf *.egg-info
+	-rm -rf build/
+	-rm -rf dist/
+	-rm -rf htmlcov
+	-rm .coverage
+
+coverage:
+	PYTHONPATH=. coverage run --source pynetics setup.py test
+	coverage html
+	coverage report -m
 
 docs:
 	cd docs && $(MAKE) html

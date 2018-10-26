@@ -9,6 +9,7 @@ twine = "*"
 [dev-packages]
 twine = "*"
 sphinx = "*"
+coverage = "*"
 
 [requires]
 python_version = "3.6"
